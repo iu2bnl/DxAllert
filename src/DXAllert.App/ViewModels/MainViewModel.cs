@@ -405,8 +405,6 @@ public partial class MainViewModel : ObservableObject
                 StatusText = $"Ultimo aggiornamento: {Fmt.DateTimeUtc(DateTime.UtcNow)}" +
                              (failed > 0 ? $" · {failed} fonti non raggiunte (uso la cache)" : "") +
                              " · le liste si aggiornano ogni minuto";
-                foreach (var d in result.NewlyAnnounced.Take(5))
-                    if (_alerts.OnNewAnnounced(d, _settings) is { } a) AlertRaised?.Invoke(a);
             }
         }
         catch (OperationCanceledException) { }
@@ -440,10 +438,6 @@ public partial class MainViewModel : ObservableObject
             foreach (var s in spots.OrderBy(s => s.TimeUtc)) row.AddSpot(s);
             Active.Add(row);
             _activeByCall[key] = row;
-
-            if (_alerts.OnStartsToday(d, _settings, now) is { } alert &&
-                _repo.MarkKnown($"start|{d.Callsign}|{now:yyyyMMdd}"))
-                AlertRaised?.Invoke(alert);
         }
         SelectedActive = Active.FirstOrDefault(r => r.Callsign == selected);
         RebuildPlanned();
@@ -590,10 +584,7 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private string _editFavorites = "";
     [ObservableProperty] private bool _editAlertOnSpot;
     [ObservableProperty] private bool _editAlertOnlyFavorites;
-    [ObservableProperty] private bool _editAlertOnStart;
-    [ObservableProperty] private bool _editAlertOnNew;
     [ObservableProperty] private bool _editAlertSound;
-    [ObservableProperty] private string _editThrottle = "10";
     [ObservableProperty] private bool _editIncludeSpecial;
     [ObservableProperty] private bool _editDarkTheme;
     [ObservableProperty] private bool _editAutostart;
@@ -621,10 +612,7 @@ public partial class MainViewModel : ObservableObject
         EditFavorites = string.Join(Environment.NewLine, s.Favorites);
         EditAlertOnSpot = s.AlertOnSpot;
         EditAlertOnlyFavorites = s.AlertOnlyFavorites;
-        EditAlertOnStart = s.AlertOnStart;
-        EditAlertOnNew = s.AlertOnNew;
         EditAlertSound = s.AlertSound;
-        EditThrottle = s.AlertThrottleMinutes.ToString();
         EditIncludeSpecial = s.IncludeSpecialEvents;
         EditDarkTheme = s.DarkTheme;
         EditAutostart = Autostart.IsEnabled();
@@ -662,11 +650,7 @@ public partial class MainViewModel : ObservableObject
             }
             nodes.Add($"{host}:{port}");
         }
-        if (!int.TryParse(EditThrottle, out var throttle) || throttle is < 1 or > 1440)
-        {
-            SettingsMessage = "L'intervallo tra gli avvisi deve essere tra 1 e 1440 minuti.";
-            return;
-        }
+
 
         // QRZ: campo password vuoto = resta quella salvata; utente vuoto = credenziali rimosse.
         var qrzUser = EditQrzUser.Trim();
@@ -688,10 +672,7 @@ public partial class MainViewModel : ObservableObject
             Favorites = EditFavorites.Split(new[] { '\r', '\n', ',', ';' }, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList(),
             AlertOnSpot = EditAlertOnSpot,
             AlertOnlyFavorites = EditAlertOnlyFavorites,
-            AlertOnStart = EditAlertOnStart,
-            AlertOnNew = EditAlertOnNew,
             AlertSound = EditAlertSound,
-            AlertThrottleMinutes = throttle,
             IncludeSpecialEvents = EditIncludeSpecial,
             DarkTheme = EditDarkTheme,
             QrzUser = qrzUser,

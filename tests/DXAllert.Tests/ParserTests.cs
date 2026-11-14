@@ -199,7 +199,7 @@ public class ParserTests
     }
 
     [Fact]
-    public void AlertEngine_ThrottlesSameStationAndBand()
+    public void AlertEngine_AlertsOnlyWhenStationComesOnAir()
     {
         var engine = new AlertEngine();
         var settings = new AppSettings();
@@ -207,16 +207,25 @@ public class ParserTests
         var spot = new Spot(Now, "3X4U", 14025.0, "IK2CLB", "", "Cluster");
 
         Assert.NotNull(engine.OnSpot(spot, dx, settings, Now));
+        // Resta in aria: né lo stesso spot, né un'altra banda ripetono l'avviso.
         Assert.Null(engine.OnSpot(spot, dx, settings, Now.AddMinutes(9)));
-        // Altra banda: avviso separato.
-        Assert.NotNull(engine.OnSpot(spot with { FreqKhz = 21025.0 }, dx, settings, Now.AddMinutes(1)));
-        Assert.NotNull(engine.OnSpot(spot, dx, settings, Now.AddMinutes(11)));
+        Assert.Null(engine.OnSpot(spot with { FreqKhz = 21025.0 }, dx, settings, Now.AddMinutes(10)));
+        // Ogni spot rinnova la finestra: 14 minuti dopo l'ultimo è ancora in aria.
+        Assert.Null(engine.OnSpot(spot, dx, settings, Now.AddMinutes(24)));
+        // Dopo più di 15 minuti di silenzio ricompare: nuovo avviso.
+        Assert.NotNull(engine.OnSpot(spot, dx, settings, Now.AddMinutes(40)));
+        // Un'altra stazione ha il suo avviso.
+        Assert.NotNull(engine.OnSpot(spot with { DxCall = "C8K" }, new Dxpedition { Callsign = "C8K" }, settings, Now.AddMinutes(41)));
 
         // Banda o modo non di interesse: nessun avviso.
+        var other = new Dxpedition { Callsign = "VK9NA" };
         settings.Bands.Remove("10m");
-        Assert.Null(engine.OnSpot(spot with { FreqKhz = 28025.0 }, dx, settings, Now));
+        Assert.Null(engine.OnSpot(spot with { DxCall = "VK9NA", FreqKhz = 28025.0 }, other, settings, Now));
         settings.Modes.Remove("FT8");
-        Assert.Null(engine.OnSpot(spot with { FreqKhz = 18100.5 }, dx, settings, Now));
+        Assert.Null(engine.OnSpot(spot with { DxCall = "VK9NA", FreqKhz = 18100.5 }, other, settings, Now));
+        // Avvisi spenti.
+        settings.AlertOnSpot = false;
+        Assert.Null(engine.OnSpot(spot with { DxCall = "VK9NA" }, other, settings, Now));
     }
 
     [Fact]

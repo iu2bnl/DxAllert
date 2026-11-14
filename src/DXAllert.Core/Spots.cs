@@ -27,15 +27,16 @@ public static class SpotLineParser
     }
 }
 
-public enum AlertKind { OnAir, StartsToday, NewAnnounced }
+public enum AlertKind { OnAir }
 
 public sealed record Alert(AlertKind Kind, string Title, string Text, Dxpedition Dxpedition);
 
-/// <summary>Regole degli avvisi e limite di ripetizione per stazione+banda.</summary>
+/// <summary>Un solo avviso quando una DXpedition compare on air: finché continua a essere spottata
+/// (su una banda e un modo di interesse) non si ripete; torna dopo una pausa più lunga di <see cref="OnAirWindow"/>.</summary>
 public sealed class AlertEngine
 {
-    private readonly Dictionary<string, DateTime> _lastAlert = new(StringComparer.Ordinal);
-    private readonly HashSet<string> _startNotified = new(StringComparer.Ordinal);
+    public static readonly TimeSpan OnAirWindow = TimeSpan.FromMinutes(15);
+    private readonly Dictionary<string, DateTime> _lastSeen = new(StringComparer.Ordinal);
 
     public Alert? OnSpot(Spot spot, Dxpedition dx, AppSettings s, DateTime nowUtc)
     {
@@ -46,11 +47,10 @@ public sealed class AlertEngine
         if (mode.Length > 0 && !s.Modes.Contains(mode)) return null;
         if (s.AlertOnlyFavorites && !IsFavorite(dx, s)) return null;
 
-        var key = CallsignUtil.Normalize(spot.DxCall) + "|" + band;
-        if (_lastAlert.TryGetValue(key, out var last) &&
-            nowUtc - last < TimeSpan.FromMinutes(Math.Max(1, s.AlertThrottleMinutes)))
-            return null;
-        _lastAlert[key] = nowUtc;
+        var key = CallsignUtil.Normalize(spot.DxCall);
+        var alreadyOnAir = _lastSeen.TryGetValue(key, out var last) && nowUtc - last <= OnAirWindow;
+        _lastSeen[key] = nowUtc;
+        if (alreadyOnAir) return null;
 
         var entity = dx.Entity?.Name ?? dx.EntityName;
         return new Alert(AlertKind.OnAir, $"{spot.DxCall} ON AIR – {band} {mode}".TrimEnd(),
@@ -58,22 +58,6 @@ public sealed class AlertEngine
             (spot.Comment.Length > 0 ? $"\n{spot.Comment}" : ""), dx);
     }
 
-    /// <summary>Una sola volta per stazione e data d'inizio.</summary>
-    public Alert? OnStartsToday(Dxpedition dx, AppSettings s, DateTime nowUtc)
-    {
-        if (!s.AlertOnStart || dx.StartUtc?.Date != nowUtc.Date) return null;
-        if (!_startNotified.Add(dx.Callsign + "|" + nowUtc.Date.ToString("yyyyMMdd"))) return null;
-        return new Alert(AlertKind.StartsToday, $"{dx.Callsign} inizia oggi",
-            $"{dx.Entity?.Name ?? dx.EntityName}" + (dx.EndUtc is { } e ? $" · fino al {e:dd/MM/yyyy}" : ""), dx);
-    }
-
-    public Alert? OnNewAnnounced(Dxpedition dx, AppSettings s)
-    {
-        if (!s.AlertOnNew) return null;
-        var dates = dx.StartUtc is { } st ? $" · dal {st:dd/MM/yyyy}" : "";
-        return new Alert(AlertKind.NewAnnounced, $"Nuova DXpedition: {dx.Callsign}",
-            $"{dx.Entity?.Name ?? dx.EntityName}{dates} · fonte {string.Join(", ", dx.Sources)}", dx);
-    }
 
     public static bool IsFavorite(Dxpedition dx, AppSettings s)
     {

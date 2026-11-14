@@ -60,10 +60,7 @@ public sealed class AppSettings
     public List<string> Favorites { get; set; } = new();
     public bool AlertOnSpot { get; set; } = true;
     public bool AlertOnlyFavorites { get; set; }
-    public bool AlertOnStart { get; set; } = true;
-    public bool AlertOnNew { get; set; } = true;
     public bool AlertSound { get; set; } = true;
-    public int AlertThrottleMinutes { get; set; } = 10;
     public bool IncludeSpecialEvents { get; set; }
     public bool DarkTheme { get; set; }
     public string QrzUser { get; set; } = "";

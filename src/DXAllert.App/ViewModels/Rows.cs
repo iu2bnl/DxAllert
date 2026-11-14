@@ -19,7 +19,7 @@ public static class Fmt
 /// <summary>Riga delle tabelle "Attive ora" e "Pianificate".</summary>
 public partial class DxRow : ObservableObject
 {
-    public static readonly TimeSpan OnAirWindow = TimeSpan.FromMinutes(15);
+    public static readonly TimeSpan OnAirWindow = AlertEngine.OnAirWindow;
 
     public DxRow(Dxpedition dx, (double Lat, double Lon)? home, bool favorite, WorkedLog? worked = null)
     {

@@ -15,7 +15,8 @@ reale (spot dal DX cluster) e quelle pianificate.
 - **QRZ.com**: scheda del nominativo selezionato nel riquadro a destra, ridimensionabile.
 - **Log ADIF**: importando il proprio log, la colonna "Già collegata" indica nominativi ed
   entità DXCC già fatti, con banda e modo.
-- **Avvisi**: notifiche Windows quando una DXpedition è on air, inizia oggi o viene annunciata.
+- **Avvisi**: una notifica Windows quando una DXpedition attiva compare on air (una sola
+  volta, non a ogni spot).
 
 ## Compilare e generare DXAllert-Setup.exe (Windows 10/11)
 

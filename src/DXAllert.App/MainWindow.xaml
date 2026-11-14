@@ -446,16 +446,11 @@
                                  HorizontalAlignment="Left" VerticalContentAlignment="Top" VerticalScrollBarVisibility="Auto" />
 
                         <TextBlock Text="Avvisi" Style="{StaticResource SectionTitle}" />
-                        <CheckBox Content="Una DXpedition attiva viene spottata su una banda e un modo che mi interessano" IsChecked="{Binding EditAlertOnSpot}" />
-                        <CheckBox Content="Avvisa per gli spot solo se la stazione è tra i preferiti" IsChecked="{Binding EditAlertOnlyFavorites}" Margin="22,3,0,3" />
-                        <CheckBox Content="Una DXpedition pianificata inizia oggi" IsChecked="{Binding EditAlertOnStart}" />
-                        <CheckBox Content="Viene annunciata una nuova DXpedition" IsChecked="{Binding EditAlertOnNew}" />
+                        <TextBlock Foreground="{DynamicResource Muted}" Margin="0,4,0,4" TextWrapping="Wrap"
+                                   Text="L'avviso compare una sola volta, quando una DXpedition attiva passa a ON AIR su una banda e un modo che ti interessano. Finché resta in aria non si ripete; torna se ricompare dopo più di 15 minuti senza spot." />
+                        <CheckBox Content="Avvisami quando una DXpedition attiva compare ON AIR" IsChecked="{Binding EditAlertOnSpot}" />
+                        <CheckBox Content="Solo se la stazione è tra i preferiti" IsChecked="{Binding EditAlertOnlyFavorites}" Margin="22,3,0,3" />
                         <CheckBox Content="Suono insieme alla notifica" IsChecked="{Binding EditAlertSound}" />
-                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
-                            <TextBlock Text="Non ripetere l'avviso per la stessa stazione e banda prima di" VerticalAlignment="Center" />
-                            <TextBox Text="{Binding EditThrottle, UpdateSourceTrigger=PropertyChanged}" Width="50" Margin="8,0" />
-                            <TextBlock Text="minuti" VerticalAlignment="Center" />
-                        </StackPanel>
 
                         <TextBlock Text="Altro" Style="{StaticResource SectionTitle}" />
                         <CheckBox Content="Mostra anche i nominativi speciali (special event) del calendario 425 DX News" IsChecked="{Binding EditIncludeSpecial}" />
