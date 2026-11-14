@@ -3,6 +3,20 @@
 Programma per radioamatori che mostra e segnala le DXpedition attive, quelle on air in tempo
 reale (spot dal DX cluster) e quelle pianificate.
 
+## Cosa fa
+
+- **Attive ora**: le DXpedition in corso, con l'etichetta ON AIR per quelle spottate negli
+  ultimi 15 minuti, ultimo spot, QSL, distanza e azimut dal proprio locator.
+- **Tempo reale**: gli spot del DX cluster con filtri per banda, modo e frequenza.
+- **Pianificate**: le operazioni annunciate, in tabella o in calendario, con filtri per mese,
+  continente ed entità.
+- **Mappa**: tutte le operazioni sulla mappa del mondo; nelle prime due schede una minimappa
+  mostra la posizione della riga selezionata.
+- **QRZ.com**: scheda del nominativo selezionato nel riquadro a destra, ridimensionabile.
+- **Log ADIF**: importando il proprio log, la colonna "Già collegata" indica nominativi ed
+  entità DXCC già fatti, con banda e modo.
+- **Avvisi**: notifiche Windows quando una DXpedition è on air, inizia oggi o viene annunciata.
+
 ## Compilare e generare DXAllert-Setup.exe (Windows 10/11)
 
 ### 1. Installare gli strumenti (una volta sola)
@@ -80,7 +94,7 @@ Tutto in `%AppData%\DXAllert`:
 | File | Contenuto |
 |---|---|
 | `settings.json` | impostazioni |
-| `dxallert.db` | database SQLite: cache delle fonti, storico spot (30 giorni) |
+| `dxallert.db` | database SQLite: cache delle fonti, storico spot (30 giorni), log ADIF importato |
 | `cty.dat` | file delle entità DXCC, aggiornato ogni 7 giorni |
 | `logs\dxallert-AAAAMMGG.log` | log giornaliero (pulsante "Apri log") |
 
@@ -117,6 +131,21 @@ Utente e password si inseriscono in Impostazioni > QRZ.com.
 - La password è salvata in `settings.json` cifrata con la protezione dati di Windows (DPAPI):
   si decifra solo con lo stesso utente Windows su quel computer.
 - Ogni nominativo viene chiesto a QRZ una sola volta per sessione di lavoro.
+
+## Log ADIF (già collegati)
+
+In Impostazioni > Log ADIF, "Importa file ADIF…" legge il file `.adi` esportato dal proprio
+programma di log. Nelle schede "Attive ora", "Tempo reale" e "Pianificate" la colonna
+"Già collegata" mostra:
+
+- `✓ 20m FT8 · 15m CW` se quel nominativo è già nel log, con bande e modi;
+- `~ 20m SSB` se nel log c'è solo la sua entità DXCC;
+- niente se è nuova.
+
+Ogni importazione sostituisce la precedente; "Cancella il log importato" la rimuove.
+L'entità DXCC di ogni QSO è ricavata dal nominativo con `cty.dat`, non dal nome scritto nel
+file. Se nel QSO manca la banda si usa la frequenza; il sottomodo (per esempio FT4) ha la
+precedenza sul modo. Modulo `src\DXAllert.Core\AdifParser.cs`.
 
 ## Struttura del progetto
 
