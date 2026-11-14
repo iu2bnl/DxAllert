@@ -1,0 +1,141 @@
+# DXAllert
+
+Programma per radioamatori che mostra e segnala le DXpedition attive, quelle on air in tempo
+reale (spot dal DX cluster) e quelle pianificate.
+
+## Compilare e generare DXAllert-Setup.exe (Windows 10/11)
+
+### 1. Installare gli strumenti (una volta sola)
+
+Apri PowerShell ed esegui:
+
+```powershell
+winget install Microsoft.DotNet.SDK.8
+winget install JRSoftware.InnoSetup
+```
+
+Chiudi e riapri PowerShell, poi verifica con `dotnet --version` (deve rispondere 8.0.x).
+
+### 2. Mettere il progetto in una cartella dal percorso corto
+
+Per esempio `C:\DXAllert`. Con percorsi molto lunghi Inno Setup si ferma con
+"Impossibile trovare il percorso specificato".
+
+### 3. Generare l'installer
+
+```powershell
+cd C:\DXAllert
+powershell -ExecutionPolicy Bypass -File .\build.ps1
+```
+
+Lo script fa tre cose in ordine:
+
+1. esegue i test automatici (se uno fallisce si ferma);
+2. pubblica il programma self-contained per win-x64 nella cartella `publish`
+   (non serve installare .NET sul PC di destinazione);
+3. compila `installer\DXAllert.iss` con Inno Setup.
+
+Il risultato è `dist\DXAllert-Setup.exe`.
+
+### In alternativa, i tre passi a mano
+
+```powershell
+dotnet test tests\DXAllert.Tests -c Release
+dotnet publish src\DXAllert.App -c Release -r win-x64 --self-contained true -o publish
+& "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe" installer\DXAllert.iss
+```
+
+(Se Inno Setup è stato installato per tutti gli utenti, `ISCC.exe` si trova in
+`C:\Program Files (x86)\Inno Setup 6`.)
+
+### 4. Installare
+
+Doppio clic su `DXAllert-Setup.exe`. L'installer:
+
+- installa `dxallert.exe` senza chiedere i diritti di amministratore;
+- crea il collegamento nel menu Start e, se lasci la spunta, sul desktop;
+- offre l'opzione "Avvia DXAllert con Windows";
+- avvisa se manca Microsoft Edge WebView2 Runtime (serve solo per la scheda Mappa;
+  su Windows 11 c'è già).
+
+L'eseguibile non è firmato digitalmente: al primo avvio Windows SmartScreen può mostrare
+"PC protetto da Windows". Scegli "Ulteriori informazioni" e poi "Esegui comunque".
+
+### Provare il programma senza installarlo
+
+```powershell
+dotnet run --project src\DXAllert.App
+```
+
+## Primo avvio
+
+Apri la scheda **Impostazioni**, inserisci nominativo e locator e premi **Salva**.
+Il collegamento al DX cluster parte subito dopo. Chiudendo la finestra il programma resta
+nell'area di notifica; per chiuderlo davvero: clic destro sull'icona, poi **Esci**.
+
+## Dove sono i dati
+
+Tutto in `%AppData%\DXAllert`:
+
+| File | Contenuto |
+|---|---|
+| `settings.json` | impostazioni |
+| `dxallert.db` | database SQLite: cache delle fonti, storico spot (30 giorni) |
+| `cty.dat` | file delle entità DXCC, aggiornato ogni 7 giorni |
+| `logs\dxallert-AAAAMMGG.log` | log giornaliero (pulsante "Apri log") |
+
+La disinstallazione non cancella questa cartella.
+
+## Fonti dei dati
+
+| Fonte | Cosa si legge | Note |
+|---|---|---|
+| DXZone | dati strutturati (JSON-LD) di `/events/dxpeditions/`, `/today/`, `/this-weekend/` | le viste con parametri (`?ym=`) sono vietate dal robots.txt e non vengono usate |
+| 425 DX News | calendario `index.php?op=wcal` | il credito "425 DX News" compare nella colonna Fonti |
+| NG3K ADXO | feed RSS `adxo.xml` | |
+| DX-World | feed RSS | solo nominativo, entità e link: integra le altre fonti |
+| DX cluster | telnet, uno o più nodi | riconnessione automatica |
+| DXSummit | API JSON | riserva, solo quando nessun nodo telnet è collegato |
+| country-files.com | `cty.dat` | nominativo -> entità DXCC |
+
+Escluse: **DXMaps** (i termini d'uso vietano l'uso dei dati in programmi) e **DXNews**
+(il dominio non risultava raggiungibile; il modulo `DxNewsSource` è pronto ma spento).
+
+Le liste si aggiornano ogni minuto (costante `RefreshInterval` in
+`src\DXAllert.App\ViewModels\MainViewModel.cs`); se una fonte non risponde si usa l'ultima
+copia in cache. Un intervallo così breve interroga spesso i siti delle fonti: se uno di loro
+inizia a rifiutare le richieste, conviene aumentare quel valore.
+
+## Riquadro QRZ.com
+
+Nelle schede "Attive ora" e "Tempo reale" il riquadro a destra mostra la scheda QRZ.com del
+nominativo selezionato (nome, indirizzo, locator, foto, QSL manager, LoTW/eQSL, e-mail).
+Utente e password si inseriscono in Impostazioni > QRZ.com.
+
+- Si usa il servizio XML ufficiale di QRZ (`xmldata.qrz.com`), modulo `src\DXAllert.Data\QrzClient.cs`.
+- I dati completi richiedono un abbonamento XML di QRZ; senza, arrivano solo quelli di base.
+- La password è salvata in `settings.json` cifrata con la protezione dati di Windows (DPAPI):
+  si decifra solo con lo stesso utente Windows su quel computer.
+- Ogni nominativo viene chiesto a QRZ una sola volta per sessione di lavoro.
+
+## Struttura del progetto
+
+```
+src\DXAllert.Core    modelli, interfacce, DXCC, unione delle fonti, regole degli avvisi
+src\DXAllert.Data    un file per fonte (cartella Sources), cluster telnet, SQLite
+src\DXAllert.App     interfaccia WPF (MVVM), mappa Leaflet in WebView2, tray, notifiche
+tests\DXAllert.Tests test dei parser (su campioni reali in Samples) e del riconoscimento DXCC
+installer            script Inno Setup
+```
+
+Se una fonte cambia formato si corregge solo il suo file in `src\DXAllert.Data\Sources`
+e si aggiorna il campione corrispondente in `tests\DXAllert.Tests\Samples`.
+
+## Limiti noti
+
+- L'entità DXCC viene dal nome indicato dalla fonte quando coincide con uno del `cty.dat`,
+  altrimenti dal prefisso. Per nominativi nuovi con prefissi ambigui può risultare sbagliata
+  finché `cty.dat` non viene aggiornato.
+- Bande e modi sono ricavati dal testo libero degli annunci: possono mancare.
+- Le voci che arrivano solo da DX-World non hanno date e compaiono in "Pianificate" con "—".
+- Il modo degli spot è stimato dal commento o dalla frequenza.

@@ -1,0 +1,928 @@
+<?xml version="1.0" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"
+  xmlns:content="http://purl.org/rss/1.0/modules/content/"
+  xmlns:wfw="http://wellformedweb.org/CommentAPI/"
+  xmlns:dc="http://purl.org/dc/elements/1.1/"
+ >
+
+<channel>
+<title>ADXO</title>
+<atom:link href="http://www.ng3k.com/adxo.xml" rel="self" type="application/rss+xml" />
+<description>RSS feed of ADXO listed DX announcements</description>
+<link>http://www.ng3k.com/Misc/adxo.html</link>
+<docs>http://blogs.law.harvard.edu/tech/rss</docs>
+<managingEditor>Bill@ng3k.com (Bill Feidt)</managingEditor>
+<webMaster>Bill@ng3k.com (Bill Feidt)</webMaster>
+<copyright>Copyright 1996-2024, Bill Feidt</copyright>
+
+
+<item>
+<title>Solomon Is: Oct 3-Nov 20, 2026 -- H44MS -- QSL via: LoTW</title>
+<description>
+Oct 3-Nov 20, 2026 --
+Solomon Is --
+H44MS --
+QSL: LoTW --
+Source: OPDX (Sep 22, 2026) --
+By DL2GAC; 80-10m; mainly FT8, some SSB; QSL via DL2GAC (B/d)
+</description>
+<link>https://www.qrz.com/db/H44MS</link>
+</item>
+
+
+<item>
+<title>Tanzania: Oct 19-Nov 19, 2026 -- 5H3MB -- QSL via: IK2GZU</title>
+<description>
+Oct 19-Nov 19, 2026 --
+Tanzania --
+5H3MB --
+QSL: IK2GZU --
+Source: OPDX (Sep 23, 2026) --
+By IK2GZU fm Ilembula; 80-10m; CW; QSL via IK2GZU (B/d)
+</description>
+<link>https://www.qrz.com/db/5H3MB</link>
+</item>
+
+
+<item>
+<title>Rodrigues I: Oct 20-Nov 28, 2026 -- 3B9 -- QSL via: LoTW</title>
+<description>
+Oct 20-Nov 28, 2026 --
+Rodrigues I --
+3B9 --
+QSL: LoTW --
+Source: OPDX (Sep 23, 2026) --
+By M0CFW as 3B9/M0CFW; 160-6m; CW SSB + digital; QRV for CQWW DX SSB using 3B9KW
+</description>
+<link>https://www.qrz.com/db/3B9KW</link>
+</item>
+
+
+<item>
+<title>North Cook Is: Oct 21-Nov 16, 2026 -- E51MWA -- QSL via: LoTW</title>
+<description>
+Oct 21-Nov 16, 2026 --
+North Cook Is --
+E51MWA --
+QSL: LoTW --
+Source: MM0NDX (Oct 22, 2026) --
+By N7QT fm Manihiki I (IOTA OC014); HF; mainly CW; some remote activity by N9ADG N7JP WA7CPA; QSL via M0URX
+</description>
+<link>https://www.qrz.com/db/E51MWA</link>
+</item>
+
+
+<item>
+<title>Mali: Oct 22-Dec 2, 2026 -- TZ4AM -- QSL via: LoTW</title>
+<description>
+Oct 22-Dec 2, 2026 --
+Mali --
+TZ4AM --
+QSL: LoTW --
+Source: 425DXN (Oct 9, 2026) --
+By KX4R; 80-6m; CW SSB; QSL via KX4R direct; perhaps KX4R last trip to Mali
+</description>
+<link>https://www.qrz.com/db/TZ4AM</link>
+</item>
+
+
+<item>
+<title>Madagascar: Oct 25-Dec 20, 2026 -- 5R8IC -- QSL via: LoTW</title>
+<description>
+Oct 25-Dec 20, 2026 --
+Madagascar --
+5R8IC --
+QSL: LoTW --
+Source: TDDX (Oct 30, 2026) --
+By F6ICX fm Ste Marie I (IOTA AF-090); HF; mainly CW, some FT8 (f/h) SSB; planned FT8 QRGs: 7056, 10131, 14090, 18095, 21090, 24911 28090
+</description>
+<link>https://www.qrz.com/db/5R8IC</link>
+</item>
+
+
+<item>
+<title>Lesotho: Oct 26-Nov 25, 2026 -- 7P8EA -- QSL via: HB9CCS</title>
+<description>
+Oct 26-Nov 25, 2026 --
+Lesotho --
+7P8EA --
+QSL: HB9CCS --
+Source: OPDX (Oct 21, 2026) --
+By HB9CCS fm Thaba-Tseka (KG0hl); 20-10m; CW SSB
+</description>
+<link>https://www.qrz.com/db/7P8EA</link>
+</item>
+
+
+<item>
+<title>Barbados: Oct 27-Nov 29, 2026 -- 8P -- QSL via: LoTW</title>
+<description>
+Oct 27-Nov 29, 2026 --
+Barbados --
+8P --
+QSL: LoTW --
+Source: OPDX (Oct 27, 2026) --
+By PZ5TW as 8P/PZ5TW fm Crab Hill; HF
+</description>
+<link>http://www.ng3k.com/Misc/adxo.html</link>
+</item>
+
+
+<item>
+<title>Br Virgin Is: Oct 27-Nov 29, 2026 -- VP2V -- QSL via: LoTW</title>
+<description>
+Oct 27-Nov 29, 2026 --
+Br Virgin Is --
+VP2V --
+QSL: LoTW --
+Source: OPDX (Oct 29, 2026) --
+By NY9K as VP2V/NY9K fm Virgin Gorda and Tortola; 40-10m; FT8; POTA VG-0016; some operations have been maritime mobile
+</description>
+<link>https://www.qrz.com/db/NY9K</link>
+</item>
+
+
+<item>
+<title>American Samoa: Oct 30-Nov 12, 2026 -- KH8A -- QSL via: Club Log OQRS</title>
+<description>
+Oct 30-Nov 12, 2026 --
+American Samoa --
+KH8A --
+QSL: Club Log OQRS --
+Source: MM0NDX (May 5, 2026) --
+By DJ9KH DK5WL DL1KWK DL2RNS DL4SVA DL6KAC DL6KVA DL7JOM DL7VEE fm IOTA OC-045 (AH45op); 160-6m; CW SSB FT8 RTTY; LoTW after 6 mos; see Web for full QSL details
+</description>
+<link>https://kh8a.mydx.de/</link>
+</item>
+
+
+<item>
+<title>Rwanda: Oct 31-Nov 11, 2026 -- 9X5KM -- QSL via: LoTW</title>
+<description>
+Oct 31-Nov 11, 2026 --
+Rwanda --
+9X5KM --
+QSL: LoTW --
+Source: OPDX (Oct 22, 2026) --
+By F8FUA; HF w/ focus on low bands; Hex beam, dipoles, verticals; holiday style operation; QSL via F8FUA direct (w/ 3GS + SAE) or by Buro free
+</description>
+<link>https://www.qrz.com/db/9X5KM</link>
+</item>
+
+
+<item>
+<title>Wallis and Futuna: Oct 31-Nov 14, 2026 -- FW3GT -- QSL via: M0OXO</title>
+<description>
+Oct 31-Nov 14, 2026 --
+Wallis and Futuna --
+FW3GT --
+QSL: M0OXO --
+Source: MM0NDX (Sep 25, 2026) --
+By GM0GAV fm Futuna I (IOTA OC-118); mainly 40-10m; CW FT8; 600w; vertical; good take-off to EU, poor to NA and SA
+</description>
+<link>http://www.ng3k.com/Misc/adxo.html</link>
+</item>
+
+
+<item>
+<title>Montserrat: Nov 3-16, 2026 -- VP2MCV -- QSL via: LoTW</title>
+<description>
+Nov 3-16, 2026 --
+Montserrat --
+VP2MCV --
+QSL: LoTW --
+Source: TDDX (Oct 19, 2026) --
+By KG9N fm Gingerbread Hill; HF; QSL via KG9N (B/d)
+</description>
+<link>https://www.qrz.com/db/VP2MCV</link>
+</item>
+
+
+<item>
+<title>Cape Verde Is: Nov 4-11, 2026 -- D44PX -- QSL via: LoTW</title>
+<description>
+Nov 4-11, 2026 --
+Cape Verde Is --
+D44PX --
+QSL: LoTW --
+Source: TDDX (Sep 12, 2026) --
+By IZ2DPX fm Boa Vista (HK86mc); 60-6m; SSB FT8 FT4; 100w; vertical, dipoles; QSL via Club Log OQRS
+</description>
+<link>https://www.qrz.com/db/D44PX</link>
+</item>
+
+
+<item>
+<title>Uganda: Nov 8-Dec 29, 2026 -- 5X7W -- QSL via: LoTW</title>
+<description>
+Nov 8-Dec 29, 2026 --
+Uganda --
+5X7W --
+QSL: LoTW --
+Source: TDDX (Oct 26, 2026) --
+By SM0HPL; also using 5X1Q when running QRP; 80-10m; slow CW FT8 FT4; QRV for CQWW DX CW; QSL via M0OXO or Club Log OQRS
+</description>
+<link>https://www.qrz.com/db/5X7W</link>
+</item>
+
+
+<item>
+<title>Guinea: Nov 11-24, 2026 -- 3X4U -- QSL via: M0URX OQRS</title>
+<description>
+Nov 11-24, 2026 --
+Guinea --
+3X4U --
+QSL: M0URX OQRS --
+Source: MM0NDX (Sep 20, 2026) --
+By 10 ON/PA ops fm Lac de Koba; 160-6m; CW SSB FT8 RTTY; 5 stns; 1kw; 2 hexbeams, phased verticals, foursquare, verticals; LoTW after 6 months
+</description>
+<link>https://rockall.be/</link>
+</item>
+
+
+<item>
+<title>Ceuta and Melilla: Nov 13-15, 2026 -- EG9MM -- QSL via: LoTW</title>
+<description>
+Nov 13-15, 2026 --
+Ceuta and Melilla --
+EG9MM --
+QSL: LoTW --
+Source: OPDX (Aug 27, 2026) --
+By EA4GHH EA4HUK EA4IWX EA3JAQ fm Melilla; 80-10m; SSB + digital
+</description>
+<link>https://www.qrz.com/db/EG9MM</link>
+</item>
+
+
+<item>
+<title>Cape Verde Is: Nov 13-20, 2026 -- D44JB -- QSL via: LoTW</title>
+<description>
+Nov 13-20, 2026 --
+Cape Verde Is --
+D44JB --
+QSL: LoTW --
+Source: OPDX (Oct 1, 2026) --
+By EI8JB fm Santo Antao I (HK77le); 80-10m; focus on SSB FT8; vertical, fan dipole; holiday style operation; QSL via Club Log OQRS
+</description>
+<link>https://www.qrz.com/db/D44JB</link>
+</item>
+
+
+<item>
+<title>South Cook Is: Nov 14-22, 2026 -- E51A -- QSL via: YT5A (B/d)</title>
+<description>
+Nov 14-22, 2026 --
+South Cook Is --
+E51A --
+QSL: YT5A (B/d) --
+Source: MM0NDX (Sep 29, 2026) --
+By YT5A fm Rarotonga I; HF; CW SSB FT8; holiday style operation
+</description>
+<link>https://www.yt1ad.info/dxped.html</link>
+</item>
+
+
+<item>
+<title>Ecuador: Nov 15-22, 2026 -- HD4W -- QSL via: Club Log OQRS</title>
+<description>
+Nov 15-22, 2026 --
+Ecuador --
+HD4W --
+QSL: Club Log OQRS --
+Source: OPDX (Sep 27, 2026) --
+By PY8WW fm Cojimies I (IOTA SA-056); 40-6m; SSB CW FT8
+</description>
+<link>https://www.qrz.com/db/HD4W</link>
+</item>
+
+
+<item>
+<title>Christmas I: Nov 16-Dec 4, 2026 -- VK9XY -- QSL via: M0OXO</title>
+<description>
+Nov 16-Dec 4, 2026 --
+Christmas I --
+VK9XY --
+QSL: M0OXO --
+Source: MM0NDX (Jul 20, 2026) --
+By 8 young ops, including KN4DLY KN2P VK4OTZ; 160-6m; QRV for CQWW DX CW
+</description>
+<link>https://vk9xy2026.com/</link>
+</item>
+
+
+<item>
+<title>Cocos (Keeling) I: Nov 20-27, 2026 -- VK9DS -- QSL via: ?</title>
+<description>
+Nov 20-27, 2026 --
+Cocos (Keeling) I --
+VK9DS --
+QSL: ? --
+Source: MM0NDX (Oct 9, 2026) --
+By VK6DS; 80-6m; SSB CW FT8; logs will be uploaded to Club Log and QRZ upon his return home
+</description>
+<link>https://www.qrz.com/db/VK9DS</link>
+</item>
+
+
+<item>
+<title>Ecuador: Nov 20-22, 2026 -- HD4W -- QSL via: Club Log OQRS</title>
+<description>
+Nov 20-22, 2026 --
+Ecuador --
+HD4W --
+QSL: Club Log OQRS --
+Source: OPDX (Sep 27, 2026) --
+By PY8WW fm Cojimies I (IOTA SA-056); 40-6m; SSB CW FT8
+</description>
+<link>https://www.qrz.com/db/HD4W</link>
+</item>
+
+
+<item>
+<title>Mauritius: Nov 20-Dec 3, 2026 -- 3B8 -- QSL via: LoTW</title>
+<description>
+Nov 20-Dec 3, 2026 --
+Mauritius --
+3B8 --
+QSL: LoTW --
+Source: OPDX (Oct 22, 2026) --
+By 3B8/E70A; HF; QSL via E70A (B/d)
+</description>
+<link>https://www.qrz.com/db/E70A</link>
+</item>
+
+
+<item>
+<title>Rodrigues I: Nov 22-Dec 2, 2026 -- 3B9 -- QSL via: LoTW</title>
+<description>
+Nov 22-Dec 2, 2026 --
+Rodrigues I --
+3B9 --
+QSL: LoTW --
+Source: OPDX (Sep 23, 2026) --
+By M0CFW as 3B9/M0CFW; 160-6m; CW SSB + digital; QRV for CQWW DX CW using 3B9KW
+</description>
+<link>https://www.qrz.com/db/3B9KW</link>
+</item>
+
+
+<item>
+<title>St Helena: Nov 22-Dec 5, 2026 -- ZD7 -- QSL via: LoTW</title>
+<description>
+Nov 22-Dec 5, 2026 --
+St Helena --
+ZD7 --
+QSL: LoTW --
+Source: MM0NDX (Oct 29, 2026) --
+By G4BWP as ZD7WP and 5Z4VJ as ZD7VJ; HF, incl 60m; CW SSB FT8; QRV for CQWW DX CW
+</description>
+<link>http://www.ng3k.com/Misc/adxo.html</link>
+</item>
+
+
+<item>
+<title>Honduras: Nov 23-30, 2026 -- HR5 -- QSL via: LoTW</title>
+<description>
+Nov 23-30, 2026 --
+Honduras --
+HR5 --
+QSL: LoTW --
+Source: TDDX (Sep 24, 2026) --
+By F2JD as HR5/F2JD; HF; all modes; QSL via F6AJA; QRV through Mar 15, 2027
+</description>
+<link>https://www.qrz.com/db/F2JD</link>
+</item>
+
+
+<item>
+<title>Sint Maartin: Nov 23-30, 2026 -- PJ7WW -- QSL via: LoTW</title>
+<description>
+Nov 23-30, 2026 --
+Sint Maartin --
+PJ7WW --
+QSL: LoTW --
+Source: MM0NDX (Sep 2, 2026) --
+By DL1MGB; 160-10m; CW; QSL via Club Log OQRS or DL1MGB (B/d)
+</description>
+<link>http://www.ng3k.com/Misc/adxo.html</link>
+</item>
+
+
+<item>
+<title>Surinam: Nov 23-Dec 1, 2026 -- PZ5KW -- QSL via: PE1K</title>
+<description>
+Nov 23-Dec 1, 2026 --
+Surinam --
+PZ5KW --
+QSL: PE1K --
+Source: MM0NDX (Oct 21, 2026) --
+By PE1K fm Paramaibo; HF; FT8 SSB; holiday style operation
+</description>
+<link>http://www.ng3k.com/Misc/adxo.html</link>
+</item>
+
+
+<item>
+<title>Honduras: Nov 25-Dec 5, 2026 -- HR9 -- QSL via: LoTW</title>
+<description>
+Nov 25-Dec 5, 2026 --
+Honduras --
+HR9 --
+QSL: LoTW --
+Source: TDDX (Oct 1, 2026) --
+By K6VHF as K6VHF/HR9 fm Roatan I (IOTA NA-057); 160-6m; all modes; 100w; hexbeam, longwire, delta, beam; QSL OK via Club Log OQRS
+</description>
+<link>https://www.qrz.com/db/K6VHF/HR9</link>
+</item>
+
+
+<item>
+<title>Juan Fernandez Is: Nov 25-Dec 6, 2026 -- XR0Z -- QSL via: LoTW</title>
+<description>
+Nov 25-Dec 6, 2026 --
+Juan Fernandez Is --
+XR0Z --
+QSL: LoTW --
+Source: OPDX (Aug 14, 2026) --
+By CE3VTZ XQ7I fm Alexander Selkirk I (IOTA SA-101, EF96of); 160-6m; CW SSB FT8; QSL via M0URX
+</description>
+<link>https://www.xr0z.net/</link>
+</item>
+
+
+<item>
+<title>Micronesia: Nov 26-Dec 1, 2026 -- V6AIU -- QSL via: Club Log OQRS</title>
+<description>
+Nov 26-Dec 1, 2026 --
+Micronesia --
+V6AIU --
+QSL: Club Log OQRS --
+Source: OPDX (Nov 7, 2026) --
+By JH3AIU fm Truk, Weno I;  80-10m; C
+</description>
+<link>https://www.qrz.com/db/V6AIU</link>
+</item>
+
+
+<item>
+<title>Christmas I: Nov 28-Dec 4, 2026 -- VK9DS -- QSL via: ?</title>
+<description>
+Nov 28-Dec 4, 2026 --
+Christmas I --
+VK9DS --
+QSL: ? --
+Source: MM0NDX (Oct 9, 2026) --
+By VK6DS; 80-6m; SSB CW FT8; logs will be uploaded to Club Log and QRZ upon his return home
+</description>
+<link>https://www.qrz.com/db/VK9DS</link>
+</item>
+
+
+<item>
+<title>Tonga: Nov 28-Dec 4, 2026 -- A35TV -- QSL via: Club Log OQRS</title>
+<description>
+Nov 28-Dec 4, 2026 --
+Tonga --
+A35TV --
+QSL: Club Log OQRS --
+Source: TDDX (Sep 17, 2026) --
+By VK2IR VK3YP SV0EG SV1DAY SV1GE HB9EB ; 160-6m; FT8 CW SSB
+</description>
+<link>https://a35tv.com/</link>
+</item>
+
+
+<item>
+<title>Br Virgin Is: Nov 29-Dec 7, 2026 -- VP2V -- QSL via: LoTW</title>
+<description>
+Nov 29-Dec 7, 2026 --
+Br Virgin Is --
+VP2V --
+QSL: LoTW --
+Source: MM0NDX (Oct 8, 2026) --
+By WE9G as VP2V/WE9G fm Tortola; 160-6m; QSL via WE9G direcct
+</description>
+<link>http://www.ng3k.com/Misc/adxo.html</link>
+</item>
+
+
+<item>
+<title>St Martin: Nov 30-Dec 9, 2026 -- FS -- QSL via: LoTW</title>
+<description>
+Nov 30-Dec 9, 2026 --
+St Martin --
+FS --
+QSL: LoTW --
+Source: MM0NDX (Sep 2, 2026) --
+By DL1MGB; 160-10m; CW; QSL via Club Log OQRS or DL1MGB (B/d)
+</description>
+<link>http://www.ng3k.com/Misc/adxo.html</link>
+</item>
+
+
+<item>
+<title>Nauru: Dec 10-16, 2026 -- C21GD -- QSL via: LoTW</title>
+<description>
+Dec 10-16, 2026 --
+Nauru --
+C21GD --
+QSL: LoTW --
+Source: MM0NDX (Oct 31, 2026) --
+By JM1GDA fm RI39ll; 80-6m; CW SSB FT8 FT4; QSL via Club Log OQRS
+</description>
+<link>https://www.qrz.com/db/C21GD</link>
+</item>
+
+
+<item>
+<title>Falkland Is: Dec 12, 2026-Jan 2, 2027 -- VP8THW -- QSL via: LoTW</title>
+<description>
+Dec 12, 2026-Jan 2, 2027 --
+Falkland Is --
+VP8THW --
+QSL: LoTW --
+Source: TDDX (Nov 2, 2026) --
+By DL7HW; 40 20 17 15 12 10m, focus on 40m; SSB FT8; QSL via DL7HW Buro
+</description>
+<link>https://www.qrz.com/db/VP8THW</link>
+</item>
+
+
+<item>
+<title>St Helena: Dec 14, 2026-Jan 1, 2027 -- ZD7LC -- QSL via: LoTW</title>
+<description>
+Dec 14, 2026-Jan 1, 2027 --
+St Helena --
+ZD7LC --
+QSL: LoTW --
+Source: TDDX (Oct 26, 2026) --
+By ZR6LC; 40 20 17 15 12 10m; SSB CW; 5,100w; QSL via Club Log OQRS
+</description>
+<link>https://www.qrz.com/db/ZD7LC</link>
+</item>
+
+
+<item>
+<title>Tanzania: Dec 23, 2026-Jan 6, 2027 -- 5H1RK -- QSL via: LoTW</title>
+<description>
+Dec 23, 2026-Jan 6, 2027 --
+Tanzania --
+5H1RK --
+QSL: LoTW --
+Source: MM0NDX (Sep 2, 2026) --
+By SP3RK fm Bwejuu, Unguja I (IOTA AF-032) Zanzibar I; 20 17 15 12 10m; FT8 FT4 FT2, some CW; QRP; holiday style operation
+</description>
+<link>https://www.qrz.com/db/5H1RK</link>
+</item>
+
+
+<item>
+<title>Gambia: Dec 27, 2026-Jan 3, 2027 -- C5H -- QSL via: LoTW</title>
+<description>
+Dec 27, 2026-Jan 3, 2027 --
+Gambia --
+C5H --
+QSL: LoTW --
+Source: OPDX (Aug 31, 2026) --
+By F4GJE fm Kotu West (IK13ok); 40-6m; SSB FT4 FT8; 250-300w; vertical, EFHW
+</description>
+<link>http://www.ng3k.com/Misc/adxo.html</link>
+</item>
+
+
+<item>
+<title>Seychelles: Dec 28, 2026-Jan 8, 2027 -- S79 -- QSL via: LoTW</title>
+<description>
+Dec 28, 2026-Jan 8, 2027 --
+Seychelles --
+S79 --
+QSL: LoTW --
+Source: MM0NDX (Jun 29, 2026) --
+By OK2ZA OK6DJ as S79/OL1T; HF; QSL via Club Log OQRS or OK6DJ (B/d)
+</description>
+<link>http://www.ng3k.com/Misc/adxo.html</link>
+</item>
+
+
+<item>
+<title>Marianas: Dec 29, 2026-Jan 3, 2027 -- KH0 -- QSL via: LoTW</title>
+<description>
+Dec 29, 2026-Jan 3, 2027 --
+Marianas --
+KH0 --
+QSL: LoTW --
+Source: OPDX (Jun 7, 2026) --
+By AJ6VJ as KH0/AJ6VJ fm Saipan I; 40-10m, perhaps 80m; CW FT8; QSL via Club Log OQRS or eQSL
+</description>
+<link>http://www.ng3k.com/Misc/adxo.html</link>
+</item>
+
+
+<item>
+<title>Palau: Jan 8-14, 2027 -- T88SM -- QSL via: JA6EGL</title>
+<description>
+Jan 8-14, 2027 --
+Palau --
+T88SM --
+QSL: JA6EGL --
+Source: MM0NDX (Jun 4, 2026) --
+By JA6EGL fm Koror (VIP Guest Hotel); 160-6m; CW SSB AM FM
+</description>
+<link>http://www.ng3k.com/Misc/adxo.html</link>
+</item>
+
+
+<item>
+<title>Barbados: Jan 9-21, 2027 -- 8P9CB -- QSL via: LoTW</title>
+<description>
+Jan 9-21, 2027 --
+Barbados --
+8P9CB --
+QSL: LoTW --
+Source: OPDX (Oct 27, 2026) --
+By WA7RAR 20-10m; SSB CW; QSL: Chris Billings, PO Box 1383, Shady Cove, Oregon, 97539, USA; SASE/green stamps NOT required
+</description>
+<link>http://www.ng3k.com/Misc/adxo.html</link>
+</item>
+
+
+<item>
+<title>Falkland Is: Jan 10-Oct 17, 2027 -- VP8TOG -- QSL via: LoTW</title>
+<description>
+Jan 10-Oct 17, 2027 --
+Falkland Is --
+VP8TOG --
+QSL: LoTW --
+Source: OPDX (Sep 23, 2026) --
+By LU2DUR fm East Falkland; 40 20 15 10m, peraps 80m; SSB, some FT8; QSL via Club Log OQRS
+</description>
+<link>http://www.ng3k.com/Misc/adxo.html</link>
+</item>
+
+
+<item>
+<title>Micronesia: Jan 14-22, 2027 -- V6XG -- QSL via: LoTW</title>
+<description>
+Jan 14-22, 2027 --
+Micronesia --
+V6XG --
+QSL: LoTW --
+Source: MM0NDX (Sep 16, 2026) --
+By JA1XGI fm Chuuk I (IOTA OC-011,  QJ57wk); 160-6m, focus on 160m for EU NA SA; CW SSB + digital; 500w; verticals; holiday style operation; QSL via Club Log OQRS or JA1XGI (B/d)
+</description>
+<link>https://www.qrz.com/db/V6XG</link>
+</item>
+
+
+<item>
+<title>Burkina Faso: Jan 17-24, 2027 -- XT2MAX -- QSL via: LoTW</title>
+<description>
+Jan 17-24, 2027 --
+Burkina Faso --
+XT2MAX --
+QSL: LoTW --
+Source: MM0NDX (Sep 8, 2026) --
+By DK1MAX fm Ouagadougou; HF;  CW SSB FT8; 100w; vertical, OCF dipole; QSL via DK1MAX
+</description>
+<link>https://www.qrz.com/db/XT2MAX</link>
+</item>
+
+
+<item>
+<title>Sint Maarten: Jan 19-27, 2027 -- PJ7 -- QSL via: LoTW</title>
+<description>
+Jan 19-27, 2027 --
+Sint Maarten --
+PJ7 --
+QSL: LoTW --
+Source: OPDX (Oct 12, 2026) --
+By N4XTT as PJ7/N4XTT fm Simpson Bay; HF; holiday style operation; dates tentative
+</description>
+<link>https://www.qrz.com/db/N4XTT</link>
+</item>
+
+
+<item>
+<title>Peter I: Feb 1-28, 2027 -- 3Y0L -- QSL via: LoTW</title>
+<description>
+Feb 1-28, 2027 --
+Peter I --
+3Y0L --
+QSL: LoTW --
+Source: MM0NDX (Apr 9, 2026) --
+By 19 ops for 2 weeks during February
+</description>
+<link>https://3y0l.com/</link>
+</item>
+
+
+<item>
+<title>St Kitts and Nevis: Feb 3-Mar 3, 2027 -- V4 -- QSL via: LoTW</title>
+<description>
+Feb 3-Mar 3, 2027 --
+St Kitts and Nevis --
+V4 --
+QSL: LoTW --
+Source: TDDX (Aug 25, 2026) --
+By K0YA as V47YA and W5RCX as V47RCX fm St Kitts I; 160-6m; CW SSB FT8, V47RCX FT8 only; QSL OK via home_call
+</description>
+<link>http://www.ng3k.com/Misc/adxo.html</link>
+</item>
+
+
+<item>
+<title>Solomon Is: Feb 5-May 7, 2027 -- H44MS -- QSL via: LoTW</title>
+<description>
+Feb 5-May 7, 2027 --
+Solomon Is --
+H44MS --
+QSL: LoTW --
+Source: OPDX (Sep 22, 2026) --
+By DL2GAC; 80-10m; mainly FT8, some SSB; QSL via DL2GAC (B/d)
+</description>
+<link>https://www.qrz.com/db/H44MS</link>
+</item>
+
+
+<item>
+<title>Palau: Feb 10-18, 2027 -- T8KT -- QSL via: LoTW</title>
+<description>
+Feb 10-18, 2027 --
+Palau --
+T8KT --
+QSL: LoTW --
+Source: JF3PLF (Oct 22, 2026) --
+By 7K4TKB JA6FWJ JF3LGC JF3PLF JH3FHR JH3QNH JH3TXR JI3NST JI6DUE JN3JBC JN3RAZ JR3FOS; 160-6m; SSB CW + digital; QSL via Club Log OQRS or JA Buro; commemorating JARL Kyoto Club's 80th Anniversary
+</description>
+<link>http://www.ng3k.com/Misc/adxo.html</link>
+</item>
+
+
+<item>
+<title>Somalia: Feb 15-27, 2027 -- 6O6X -- QSL via: TBA</title>
+<description>
+Feb 15-27, 2027 --
+Somalia --
+6O6X --
+QSL: TBA --
+Source: MM0NDX (Jul 2, 2026) --
+By ops fm Berbera (LK20mk); HF
+</description>
+<link>https://www.dx-adventure.com/en/home-eng/</link>
+</item>
+
+
+<item>
+<title>Monaco: Mar 2-9, 2027 -- 3A -- QSL via: LoTW</title>
+<description>
+Mar 2-9, 2027 --
+Monaco --
+3A --
+QSL: LoTW --
+Source: MM0NDX (Oct 5, 2026) --
+By WE9G as 3A/WE9G; 80-6m; FT8 FT4, some SSB CW; vertical, EFHW; QSL via Club Log OQRS or WE9G (B/d)
+</description>
+<link>https://www.qrz.com/db/3A/WE9G</link>
+</item>
+
+
+<item>
+<title>St Lucia: Mar 9-15, 2027 -- J6 -- QSL via: LoTW</title>
+<description>
+Mar 9-15, 2027 --
+St Lucia --
+J6 --
+QSL: LoTW --
+Source: TDDX (Jun 9, 2026) --
+By KB4YKC as J6/KB4YKC and KB4PML as J6/KB4PML; @J68HZ; HF; SSB; holiday style operation
+</description>
+<link>http://www.ng3k.com/Misc/adxo.html</link>
+</item>
+
+
+<item>
+<title>South Georgia I: Mar 12-26, 2027 -- VP0SG -- QSL via: M0OXO</title>
+<description>
+Mar 12-26, 2027 --
+South Georgia I --
+VP0SG --
+QSL: M0OXO --
+Source: F4HEC (Sep 19, 2026) --
+By LA7THA LB1QI LB5GI W0ZB DL3ON EI5LA F4HEC G0VJG G4PVM IU2EFB KN2P LA3BO OE7PGI OK2WX UR8UQ UT5UY; 160-6m; CW SSB + digital and QO100; 6 stns, 24/24 hrs; dates tentative
+</description>
+<link>https://www.ardxpeditions.com/dxpeditions/vp0sg</link>
+</item>
+
+
+<item>
+<title>Palau: Apr 8-14, 2027 -- T8 -- QSL via: See Info</title>
+<description>
+Apr 8-14, 2027 --
+Palau --
+T8 --
+QSL: See Info --
+Source: OPDX (Sep 17, 2026) --
+By JM1LIG JO3LVG JG1LFF as T88FM T88MK T88XM fm Koror I (IOTA OC-009, PJ77fi); HF; QSL: T88FM via JM1LIG, T88MK via JO3LVG (B/d), T88XM via LoTW or JG1LFF (B/d)
+</description>
+<link>http://www.ng3k.com/Misc/adxo.html</link>
+</item>
+
+
+<item>
+<title>French Polynesia: May 17-24, 2027 -- FO -- QSL via: LoTW</title>
+<description>
+May 17-24, 2027 --
+French Polynesia --
+FO --
+QSL: LoTW --
+Source: MM0NDX (Oct 26, 2026) --
+By WE9G as FO/WE9G fm Mangareva I (IOTA OC-063); 80-6m; FT8 FT4, some SSB CW; QSL via Club Log OQRS
+</description>
+<link>https://www.qrz.com/db/FO/WE9G</link>
+</item>
+
+
+<item>
+<title>Lord Howe I: May 24-Jun 7, 2027 -- VK2LHW -- QSL via: LoTW</title>
+<description>
+May 24-Jun 7, 2027 --
+Lord Howe I --
+VK2LHW --
+QSL: LoTW --
+Source: DL2AWG (Aug 5, 2026) --
+By DL2AWG DF4GV DL2AMD DL2SAX DL1KWK DL6RY DL4VK DJ7TO EA5GVH DL4SVA; HF + 6m; SSB CW + digital; 4 stns, 24/7; QSL via Club Log OQRS or DL2AWG
+</description>
+<link>https://lhi-2027.topdx.de/</link>
+</item>
+
+
+<item>
+<title>St Kitts and Nevis: May 27-Jun 3, 2027 -- V4 -- QSL via: LoTW</title>
+<description>
+May 27-Jun 3, 2027 --
+St Kitts and Nevis --
+V4 --
+QSL: LoTW --
+Source: TDDX (Nov 10, 2026) --
+By WW6W as V4/WW6W fm St Kitts I; QRV for CQWW WPX CW contest; QSL via WW6W
+</description>
+<link>http://www.ng3k.com/Misc/adxo.html</link>
+</item>
+
+
+<item>
+<title>Pitcairn I: May 27-Jun 12, 2027 -- VP6W -- QSL via: LoTW</title>
+<description>
+May 27-Jun 12, 2027 --
+Pitcairn I --
+VP6W --
+QSL: LoTW --
+Source: MM0NDX (Oct 26, 2026) --
+By WE9G fm CG44ww; 80-6m; FT8 FT4, some SSB CW; QSL via Club Log OQRS
+</description>
+<link>https://www.qrz.com/db/VP6W</link>
+</item>
+
+
+<item>
+<title>East Malaysia: Jun 4-20, 2027 -- 9M8T -- QSL via: LoTW</title>
+<description>
+Jun 4-20, 2027 --
+East Malaysia --
+9M8T --
+QSL: LoTW --
+Source: OPDX (Sep 20, 2026) --
+By 9M8WIN 9M8BAT 9M2WAZ 9M2MAD 9M2RSI 9M2DOC 9M2SPN 9M8LJW 9W8VYY fm Big Talang-Talang I, Sarawak, (IOTA OC-165, OJ41vv); 80-6m, perhaps 160m; CW SSB + FT modes; QSL via Club Log OQRS, 9W8ZZK direct (include 4USD)
+</description>
+<link>https://cqdx.my/9m8t/</link>
+</item>
+
+
+<item>
+<title>St Pierre and Miquelon: Jun 26-Jul 13, 2027 -- FP -- QSL via: LoTW</title>
+<description>
+Jun 26-Jul 13, 2027 --
+St Pierre and Miquelon --
+FP --
+QSL: LoTW --
+Source: MM0NDX (Nov 9, 2026) --
+By KV1J as FP/KV1J; 80-6m; SSB CW FT8; QSL via Club Log OQRS or KV1J direct; QRV for IARU contest
+</description>
+<link>https://www.kv1j.com/fp/July27.html</link>
+</item>
+
+
+<item>
+<title>Cambodia: Nov 13-23, 2027 -- XU7X -- QSL via: M0URX</title>
+<description>
+Nov 13-23, 2027 --
+Cambodia --
+XU7X --
+QSL: M0URX --
+Source: PY2WAS (Aug 2, 2026) --
+By 24 ops fm Koh Rong I (IOTA AS-133, OK10pq, WWFF XU-0008); 7 stns; 160-6m; CW SSB FT8 FT4 RTTY PSK31; auto-LoTW after 1 year
+</description>
+<link>https://xu7cambdx-8jdsr6a4.manus.space/</link>
+</item>
+</channel>
+</rss>

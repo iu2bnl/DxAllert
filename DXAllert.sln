@@ -1,0 +1,50 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{24ECDC0F-0701-4620-B98D-E919DA92E1A1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DXAllert.Core", "src\DXAllert.Core\DXAllert.Core.csproj", "{40276F93-6732-4C76-AAB9-242037A8C300}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DXAllert.Data", "src\DXAllert.Data\DXAllert.Data.csproj", "{239D3DD3-064A-470D-8D59-BBE48ED2376A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DXAllert.App", "src\DXAllert.App\DXAllert.App.csproj", "{656CEB93-C3DC-4796-A165-C6F752F141F5}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{38916FF7-B4B8-4CBE-9569-D9F017870D42}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DXAllert.Tests", "tests\DXAllert.Tests\DXAllert.Tests.csproj", "{FFDA1EE7-9FAD-46ED-85EE-B1A3D0F1D3C8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{40276F93-6732-4C76-AAB9-242037A8C300}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40276F93-6732-4C76-AAB9-242037A8C300}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40276F93-6732-4C76-AAB9-242037A8C300}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40276F93-6732-4C76-AAB9-242037A8C300}.Release|Any CPU.Build.0 = Release|Any CPU
+		{239D3DD3-064A-470D-8D59-BBE48ED2376A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{239D3DD3-064A-470D-8D59-BBE48ED2376A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{239D3DD3-064A-470D-8D59-BBE48ED2376A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{239D3DD3-064A-470D-8D59-BBE48ED2376A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{656CEB93-C3DC-4796-A165-C6F752F141F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{656CEB93-C3DC-4796-A165-C6F752F141F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{656CEB93-C3DC-4796-A165-C6F752F141F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{656CEB93-C3DC-4796-A165-C6F752F141F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FFDA1EE7-9FAD-46ED-85EE-B1A3D0F1D3C8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FFDA1EE7-9FAD-46ED-85EE-B1A3D0F1D3C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FFDA1EE7-9FAD-46ED-85EE-B1A3D0F1D3C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FFDA1EE7-9FAD-46ED-85EE-B1A3D0F1D3C8}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{40276F93-6732-4C76-AAB9-242037A8C300} = {24ECDC0F-0701-4620-B98D-E919DA92E1A1}
+		{239D3DD3-064A-470D-8D59-BBE48ED2376A} = {24ECDC0F-0701-4620-B98D-E919DA92E1A1}
+		{656CEB93-C3DC-4796-A165-C6F752F141F5} = {24ECDC0F-0701-4620-B98D-E919DA92E1A1}
+		{FFDA1EE7-9FAD-46ED-85EE-B1A3D0F1D3C8} = {38916FF7-B4B8-4CBE-9569-D9F017870D42}
+	EndGlobalSection
+EndGlobal

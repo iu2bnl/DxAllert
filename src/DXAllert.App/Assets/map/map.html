@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>DXAllert – Mappa</title>
+<link rel="stylesheet" href="leaflet.css">
+<style>
+  html, body, #map { height: 100%; margin: 0; }
+  body { font-family: "Segoe UI", sans-serif; font-size: 13px; }
+  body.dark { background: #1b1f24; }
+  body.dark .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9); }
+  body.dark .leaflet-popup-content-wrapper, body.dark .leaflet-popup-tip,
+  body.dark .legend, body.dark .pathinfo { background: #262b32; color: #e6e9ee; }
+  body.dark .leaflet-popup-content a { color: #7fbfff; }
+  .dot { border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 3px rgba(0,0,0,.6); box-sizing: border-box; }
+  .dot.planned { background: #2f7de1; }
+  .dot.active { background: #1fa055; }
+  .dot.onair { background: #e53935; animation: blink 1s ease-in-out infinite; }
+  .dot.home { background: #ffb300; border-radius: 3px; transform: rotate(45deg); }
+  @keyframes blink { 0%, 100% { opacity: 1; transform: scale(1.25); } 50% { opacity: .25; transform: scale(.85); } }
+  .legend, .pathinfo { background: #fff; padding: 6px 10px; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,.4); line-height: 1.6; }
+  .legend i { display: inline-block; width: 11px; height: 11px; border-radius: 50%; margin-right: 6px; vertical-align: -1px; }
+  .pathinfo { font-weight: 600; }
+  .pop h3 { margin: 0 0 2px; font-size: 16px; }
+  .pop .ent { margin-bottom: 6px; opacity: .8; }
+  .pop table { border-collapse: collapse; }
+  .pop td { padding: 1px 8px 1px 0; vertical-align: top; }
+  .pop td:first-child { opacity: .7; white-space: nowrap; }
+  .pop .spots { margin-top: 6px; border-top: 1px solid rgba(128,128,128,.4); padding-top: 4px; }
+  .badge { display: inline-block; padding: 0 6px; border-radius: 8px; color: #fff; font-size: 11px; margin-left: 6px; vertical-align: 2px; }
+  .badge.onair { background: #e53935; } .badge.active { background: #1fa055; } .badge.planned { background: #2f7de1; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<script src="leaflet.js"></script>
+<script>
+  const map = L.map('map', { worldCopyJump: true, minZoom: 1 }).setView([25, 10], 2);
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 10,
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  }).addTo(map);
+
+  const nightLayer = L.polygon([], { color: '#000', weight: 1, opacity: .35, fillColor: '#000', fillOpacity: .28, interactive: false }).addTo(map);
+  const pathLayer = L.layerGroup().addTo(map);
+  const markerLayer = L.layerGroup().addTo(map);
+  let home = null, openCall = null;
+
+  const legend = L.control({ position: 'bottomleft' });
+  legend.onAdd = () => {
+    const d = L.DomUtil.create('div', 'legend');
+    d.innerHTML = '<i style="background:#e53935"></i>On air adesso<br><i style="background:#1fa055"></i>Attiva<br>' +
+                  '<i style="background:#2f7de1"></i>Pianificata<br><i style="background:#ffb300;border-radius:2px"></i>La mia stazione';
+    return d;
+  };
+  legend.addTo(map);
+
+  const pathInfo = L.control({ position: 'topright' });
+  pathInfo.onAdd = () => { const d = L.DomUtil.create('div', 'pathinfo'); d.style.display = 'none'; return d; };
+  pathInfo.addTo(map);
+
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const rad = d => d * Math.PI / 180, deg = r => r * 180 / Math.PI;
+
+  // Punti intermedi del cerchio massimo (percorso corto), spezzati all'antimeridiano.
+  function greatCircle(a, b, n = 96) {
+    const p1 = rad(a.lat), l1 = rad(a.lon), p2 = rad(b.lat), l2 = rad(b.lon);
+    const d = 2 * Math.asin(Math.sqrt(Math.sin((p2 - p1) / 2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin((l2 - l1) / 2) ** 2));
+    if (d < 1e-6) return [[[a.lat, a.lon]]];
+    const segs = [[]];
+    let prev = null;
+    for (let i = 0; i <= n; i++) {
+      const f = i / n, A = Math.sin((1 - f) * d) / Math.sin(d), B = Math.sin(f * d) / Math.sin(d);
+      const x = A * Math.cos(p1) * Math.cos(l1) + B * Math.cos(p2) * Math.cos(l2);
+      const y = A * Math.cos(p1) * Math.sin(l1) + B * Math.cos(p2) * Math.sin(l2);
+      const z = A * Math.sin(p1) + B * Math.sin(p2);
+      const lat = deg(Math.atan2(z, Math.sqrt(x * x + y * y))), lon = deg(Math.atan2(y, x));
+      if (prev !== null && Math.abs(lon - prev) > 180) segs.push([]);
+      segs[segs.length - 1].push([lat, lon]);
+      prev = lon;
+    }
+    return segs;
+  }
+
+  // Linea giorno/notte: poligono della parte in ombra.
+  function updateNight() {
+    const now = new Date();
+    const dayMs = 86400000, jd = now.getTime() / dayMs + 2440587.5, n = jd - 2451545.0;
+    const L0 = (280.460 + 0.9856474 * n) % 360, g = rad((357.528 + 0.9856003 * n) % 360);
+    const lambda = rad(L0 + 1.915 * Math.sin(g) + 0.020 * Math.sin(2 * g));
+    const eps = rad(23.439 - 0.0000004 * n);
+    const decl = Math.asin(Math.sin(eps) * Math.sin(lambda));
+    const ra = deg(Math.atan2(Math.cos(eps) * Math.sin(lambda), Math.cos(lambda)));
+    const gmst = (18.697374558 + 24.06570982441908 * n) % 24;
+    let sunLon = ra - gmst * 15;
+    sunLon = ((sunLon + 540) % 360) - 180;
+    const pts = [];
+    for (let lon = -360; lon <= 360; lon += 2) {
+      const lat = deg(Math.atan(-Math.cos(rad(lon - sunLon)) / Math.tan(decl || 1e-6)));
+      pts.push([lat, lon]);
+    }
+    const pole = decl > 0 ? -90 : 90;
+    pts.push([pole, 360], [pole, -360]);
+    nightLayer.setLatLngs(pts);
+  }
+  updateNight();
+  setInterval(updateNight, 60000);
+
+  function popupHtml(it) {
+    const label = { onair: 'ON AIR', active: 'attiva', planned: 'pianificata' }[it.status];
+    const row = (k, v) => v ? `<tr><td>${k}</td><td>${esc(v)}</td></tr>` : '';
+    let h = `<div class="pop"><h3>${esc(it.call)}<span class="badge ${it.status}">${label}</span></h3>` +
+            `<div class="ent">${esc(it.entity)} · ${esc(it.cont)} · CQ ${esc(it.cq)} · ITU ${esc(it.itu)}</div><table>` +
+            row('Periodo', `${it.start} – ${it.end}`) + row('Bande', it.bands) + row('Modi', it.modes) +
+            row('IOTA', it.iota) + row('QSL', it.qsl) +
+            (it.dist != null ? row('Distanza', `${it.dist} km · azimut ${it.az}°`) : '') +
+            row('Fonti', it.sources) + '</table>';
+    if (it.spots && it.spots.length) {
+      h += '<div class="spots"><b>Ultimi spot</b><table>' +
+           it.spots.map(s => `<tr><td>${esc(s.t)}</td><td>${esc(s.f)} ${esc(s.m)} · ${esc(s.by)} ${esc(s.c)}</td></tr>`).join('') +
+           '</table></div>';
+    } else if (it.status !== 'planned') h += '<div class="spots">Nessuno spot recente</div>';
+    return h + '</div>';
+  }
+
+  function showPath(it) {
+    pathLayer.clearLayers();
+    const box = pathInfo.getContainer();
+    if (!home || !it) { box.style.display = 'none'; return; }
+    for (const seg of greatCircle(home, it))
+      L.polyline(seg, { color: '#ff7a00', weight: 2.5, dashArray: '6 5' }).addTo(pathLayer);
+    box.textContent = `${it.call}: ${it.dist} km · azimut ${it.az}° (percorso corto)`;
+    box.style.display = '';
+  }
+
+  // Chiamata dal programma con i dati aggiornati.
+  window.dxUpdate = function (data) {
+    document.body.classList.toggle('dark', !!data.dark);
+    home = data.home;
+    markerLayer.clearLayers();
+    if (home) {
+      L.marker([home.lat, home.lon], { icon: L.divIcon({ className: '', html: '<div class="dot home" style="width:14px;height:14px"></div>', iconSize: [14, 14] }), zIndexOffset: 500 })
+        .bindTooltip(`${esc(home.call || 'La mia stazione')} · ${esc(home.locator)}`).addTo(markerLayer);
+    }
+    const order = { planned: 0, active: 1, onair: 2 };
+    const seen = {};
+    let reopen = null;
+    for (const it of [...data.items].sort((a, b) => order[a.status] - order[b.status])) {
+      // Più operazioni dalla stessa entità: segnaposto leggermente sfalsati.
+      const key = it.lat + '|' + it.lon, k = seen[key] = (seen[key] || 0) + 1;
+      const ang = (k - 1) * 2.4, r = k === 1 ? 0 : 0.9 + 0.25 * k;
+      const pos = [it.lat + r * Math.sin(ang), it.lon + r * Math.cos(ang)];
+      const size = it.status === 'onair' ? 18 : it.status === 'active' ? 14 : 11;
+      const m = L.marker(pos, {
+        icon: L.divIcon({ className: '', html: `<div class="dot ${it.status}" style="width:${size}px;height:${size}px"></div>`, iconSize: [size, size] }),
+        zIndexOffset: order[it.status] * 1000
+      }).bindTooltip(`${esc(it.call)} · ${esc(it.entity)}`).bindPopup(popupHtml(it), { maxWidth: 380 }).addTo(markerLayer);
+      m.on('popupopen', () => { openCall = it.call; showPath(it); });
+      m.on('popupclose', () => { if (openCall === it.call) { openCall = null; showPath(null); } });
+      if (openCall === it.call) reopen = m;
+    }
+    if (reopen) reopen.openPopup(); else { openCall = null; showPath(null); }
+  };
+
+  // Clic su una riga delle tabelle: centra la mappa su quella stazione.
+  window.dxFocus = function (call) {
+    markerLayer.eachLayer(m => {
+      const tip = m.getTooltip && m.getTooltip();
+      if (tip && tip.getContent().startsWith(call + ' ·')) { map.setView(m.getLatLng(), Math.max(map.getZoom(), 3)); m.openPopup(); }
+    });
+  };
+</script>
+</body>
+</html>
