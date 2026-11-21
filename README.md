@@ -6,7 +6,8 @@ reale (spot dal DX cluster) e quelle pianificate.
 ## Cosa fa
 
 - **On air**: solo le DXpedition spottate negli ultimi 15 minuti, la più recente in alto, con
-  frequenza, banda, modo, spotter e commento dell'ultimo spot.
+  frequenza, banda, modo, spotter e commento dell'ultimo spot. On air, Attive ora e Tempo reale
+  hanno la stessa grafica da cluster web e una colonna "QRZ" con il link alla scheda del nominativo.
 - **Attive ora**: le DXpedition in corso, con l'etichetta ON AIR per quelle spottate negli
   ultimi 15 minuti, ultimo spot, QSL, distanza e azimut dal proprio locator.
 - **Tempo reale**: gli spot del DX cluster in stile cluster web: bandiera, nominativo DX in rosso

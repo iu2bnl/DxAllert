@@ -58,6 +58,18 @@ public partial class DxRow : ObservableObject
     public string DistanceText => DistanceKm is { } d ? $"{d:0} km" : "";
     public string AzimuthText => Azimuth is { } a ? $"{a:0}°" : "";
     public string ContinentColor => ContinentColors.Of(Continent);
+
+    // Stessi nomi delle proprietà di SpotRow: le celle in stile cluster sono condivise tra le schede.
+    public string DxCall => Callsign;
+    public string? DxFlag => DxccInfo.Flag(Dx.Entity);
+    public string DxCode => DxccInfo.Code(Dx.Entity);
+    public string DxCountry => Entity.ToUpperInvariant();
+
+    /// <summary>Riconoscimento DXCC dei nominativi, impostato quando cty.dat è caricato.</summary>
+    public static Func<string, DxccEntity?>? ResolveCall { get; set; }
+    public string Spotter => LastSpot?.Spotter ?? "";
+    public string? SpotterFlag => LastSpot is { } s ? DxccInfo.Flag(ResolveCall?.Invoke(s.Spotter)) : null;
+    public string SpotterCountry => LastSpot is { } s ? ResolveCall?.Invoke(s.Spotter)?.Name.ToUpperInvariant() ?? "" : "";
     /// <summary>Dal log ADIF: "✓ 20m FT8" (nominativo già collegato), "~ 20m SSB" (solo l'entità), vuoto se nuovo.</summary>
     public string WorkedText { get; }
 
@@ -69,6 +81,9 @@ public partial class DxRow : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(LastSpotText))]
     [NotifyPropertyChangedFor(nameof(LastSpotTime))]
+    [NotifyPropertyChangedFor(nameof(Spotter))]
+    [NotifyPropertyChangedFor(nameof(SpotterFlag))]
+    [NotifyPropertyChangedFor(nameof(SpotterCountry))]
     private Spot? _lastSpot;
 
     public string LastSpotTime => LastSpot is { } s ? Fmt.Time(s.TimeUtc) : "";

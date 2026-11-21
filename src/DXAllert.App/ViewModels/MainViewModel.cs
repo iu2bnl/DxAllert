@@ -291,6 +291,8 @@ public partial class MainViewModel : ObservableObject
             var bundled = Path.Combine(AppContext.BaseDirectory, "Assets", "cty.dat");
             _cty = await Task.Run(() => CtyProvider.LoadAsync(_http, bundled, _cts.Token));
             Log.Info($"cty.dat caricato: {_cty.Entities.Count} entità, versione {_cty.Version}");
+            var cty = _cty;
+            DxRow.ResolveCall = call => cty.Resolve(call);
             await LoadWorkedLogAsync();
 
             // Prima la cache (subito a schermo), poi le fonti in rete.
