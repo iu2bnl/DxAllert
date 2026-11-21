@@ -17,8 +17,27 @@ public partial class MainWindow : Window
     private readonly MainViewModel _vm;
     private bool _mapStarted;
     private bool _mapReady;
-    private bool _activeMiniStarted, _activeMiniReady;
-    private bool _spotMiniStarted, _spotMiniReady;
+
+    /// <summary>Minimappa a destra di una scheda: mostra il QTH, la DXpedition selezionata e il percorso corto.</summary>
+    private sealed class MiniMap
+    {
+        public MiniMap(WebView2 view, string dataDir, Func<MiniTarget?> current)
+        {
+            View = view;
+            DataDir = dataDir;
+            Current = current;
+        }
+
+        public WebView2 View { get; }
+        public string DataDir { get; }
+        public Func<MiniTarget?> Current { get; }
+        public bool Started { get; set; }
+        public bool Ready { get; set; }
+    }
+
+    private sealed record MiniTarget(double Lat, double Lon, string Call, string Entity);
+
+    private readonly MiniMap[] _miniMaps;
 
     public MainWindow(MainViewModel vm)
     {
@@ -29,20 +48,32 @@ public partial class MainWindow : Window
         vm.QrzPasswordSaved += () => QrzPassword.Clear();
         if (vm.NeedsSetup) Tabs.SelectedItem = SettingsTab;
 
+        _miniMaps = new[]
+        {
+            new MiniMap(OnAirMiniMap, "WebView2MiniOnAir", () => Target(_vm.SelectedOnAir)),
+            new MiniMap(ActiveMiniMap, "WebView2MiniActive", () => Target(_vm.SelectedActive)),
+            new MiniMap(SpotMiniMap, "WebView2MiniSpot", () => _vm.SelectedSpot is { EntityLat: { } lat, EntityLon: { } lon } s
+                ? new MiniTarget(lat, lon, s.DxCall, s.Entity) : null),
+        };
         vm.PropertyChanged += (_, args) =>
         {
-            if (args.PropertyName == nameof(MainViewModel.SelectedActive) && _activeMiniReady)
+            var view = args.PropertyName switch
             {
-                var row = _vm.SelectedActive;
-                ApplyMiniMarker(ActiveMiniMap, row?.Dx.Entity?.Latitude, row?.Dx.Entity?.Longitude, row?.Callsign ?? "");
-            }
-            if (args.PropertyName == nameof(MainViewModel.SelectedSpot) && _spotMiniReady)
-            {
-                var row = _vm.SelectedSpot;
-                ApplyMiniMarker(SpotMiniMap, row?.EntityLat, row?.EntityLon, row?.DxCall ?? "");
-            }
+                nameof(MainViewModel.SelectedOnAir) => OnAirMiniMap,
+                nameof(MainViewModel.SelectedActive) => ActiveMiniMap,
+                nameof(MainViewModel.SelectedSpot) => SpotMiniMap,
+                _ => null,
+            };
+            if (view is not null) ShowOnMini(_miniMaps.First(m => m.View == view));
+        };
+        vm.HomeChanged += () =>
+        {
+            foreach (var m in _miniMaps.Where(m => m.Ready)) { SendHome(m); ShowOnMini(m); }
         };
     }
+
+    private static MiniTarget? Target(DxRow? row) =>
+        row?.Dx.Entity is { } e ? new MiniTarget(e.Latitude, e.Longitude, row.Callsign, row.Entity) : null;
 
     private void QrzPassword_Changed(object sender, RoutedEventArgs e) => _vm.EditQrzPassword = QrzPassword.Password;
 
@@ -128,37 +159,22 @@ public partial class MainWindow : Window
         }
     }
 
-    private async void ActiveMiniMap_Loaded(object sender, RoutedEventArgs e)
+    // Ogni minimappa si inizializza la prima volta che la sua scheda viene aperta.
+    private async void MiniMap_Loaded(object sender, RoutedEventArgs e)
     {
-        if (_activeMiniStarted) return;
-        _activeMiniStarted = true;
-        await InitMiniMapAsync(ActiveMiniMap, "WebView2MiniActive", () =>
-        {
-            _activeMiniReady = true;
-            var row = _vm.SelectedActive;
-            ApplyMiniMarker(ActiveMiniMap, row?.Dx.Entity?.Latitude, row?.Dx.Entity?.Longitude, row?.Callsign ?? "");
-        });
+        var m = _miniMaps.First(x => x.View == sender);
+        if (m.Started) return;
+        m.Started = true;
+        await InitMiniMapAsync(m);
     }
 
-    private async void SpotMiniMap_Loaded(object sender, RoutedEventArgs e)
-    {
-        if (_spotMiniStarted) return;
-        _spotMiniStarted = true;
-        await InitMiniMapAsync(SpotMiniMap, "WebView2MiniSpot", () =>
-        {
-            _spotMiniReady = true;
-            var row = _vm.SelectedSpot;
-            ApplyMiniMarker(SpotMiniMap, row?.EntityLat, row?.EntityLon, row?.DxCall ?? "");
-        });
-    }
-
-    private async Task InitMiniMapAsync(WebView2 miniMap, string dataSubDir, Action onReady)
+    private async Task InitMiniMapAsync(MiniMap m)
     {
         try
         {
-            var env = await CoreWebView2Environment.CreateAsync(null, Path.Combine(AppPaths.DataDir, dataSubDir));
-            await miniMap.EnsureCoreWebView2Async(env);
-            var core = miniMap.CoreWebView2;
+            var env = await CoreWebView2Environment.CreateAsync(null, Path.Combine(AppPaths.DataDir, m.DataDir));
+            await m.View.EnsureCoreWebView2Async(env);
+            var core = m.View.CoreWebView2;
             var mapDir = Path.Combine(AppContext.BaseDirectory, "Assets", "map");
             core.AddWebResourceRequestedFilter($"https://{MapHost}/*", CoreWebView2WebResourceContext.All);
             core.WebResourceRequested += (_, args) =>
@@ -189,19 +205,28 @@ public partial class MainWindow : Window
             {
                 if (new Uri(args.Uri).Host != MapHost) args.Cancel = true;
             };
-            core.NavigationCompleted += (_, args) => { if (args.IsSuccess) onReady(); };
+            core.NavigationCompleted += (_, args) =>
+            {
+                if (!args.IsSuccess) return;
+                m.Ready = true;
+                SendHome(m);
+                ShowOnMini(m);
+            };
             core.Navigate($"https://{MapHost}/minimap.html");
         }
         catch (Exception ex) { Log.Warn($"Minimappa non disponibile: {ex.Message}"); }
     }
 
-    private void ApplyMiniMarker(WebView2 miniMap, double? lat, double? lon, string title)
+    private void SendHome(MiniMap m) => _ = RunMiniScript(m.View, $"setHome({_vm.HomeJson()})");
+
+    private void ShowOnMini(MiniMap m)
     {
-        if (!miniMap.IsLoaded) return;
-        var script = lat is { } la && lon is { } lo
-            ? $"setMarker({la.ToString(CultureInfo.InvariantCulture)}, {lo.ToString(CultureInfo.InvariantCulture)}, {JsonSerializer.Serialize(title)})"
-            : "clearMarker()";
-        _ = RunMiniScript(miniMap, script);
+        if (!m.Ready) return;
+        var t = m.Current();
+        var script = t is null
+            ? "clearDx()"
+            : $"showDx({JsonSerializer.Serialize(new { lat = t.Lat, lon = t.Lon, call = t.Call, entity = t.Entity })})";
+        _ = RunMiniScript(m.View, script);
     }
 
     private static async Task RunMiniScript(WebView2 miniMap, string script)
@@ -229,6 +254,11 @@ public partial class MainWindow : Window
     private void Grid_DoubleClick(object sender, MouseButtonEventArgs e)
     {
         if ((e.OriginalSource as FrameworkElement)?.DataContext is DxRow row) FocusOnMap(row);
+    }
+
+    private void DayList_DoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        if ((e.OriginalSource as FrameworkElement)?.DataContext is CalendarEntry entry) FocusOnMap(entry.Row);
     }
 
     private async void FocusOnMap(DxRow row)

@@ -5,13 +5,18 @@ reale (spot dal DX cluster) e quelle pianificate.
 
 ## Cosa fa
 
+- **On air**: solo le DXpedition spottate negli ultimi 15 minuti, la più recente in alto, con
+  frequenza, banda, modo, spotter e commento dell'ultimo spot.
 - **Attive ora**: le DXpedition in corso, con l'etichetta ON AIR per quelle spottate negli
   ultimi 15 minuti, ultimo spot, QSL, distanza e azimut dal proprio locator.
 - **Tempo reale**: gli spot del DX cluster con filtri per banda, modo e frequenza.
-- **Pianificate**: le operazioni annunciate, in tabella o in calendario, con filtri per mese,
+- **Pianificate**: calendario mensile (sei settimane da lunedì) con le DXpedition che iniziano
+  in ciascun giorno, colorate per continente, e il numero di quelle attive; cliccando un giorno
+  si vede a destra l'elenco completo. In alternativa la tabella, con filtri per mese,
   continente ed entità.
-- **Mappa**: tutte le operazioni sulla mappa del mondo; nelle prime due schede una minimappa
-  mostra la posizione della riga selezionata.
+- **Mappa**: tutte le operazioni sulla mappa del mondo. Nelle schede On air, Attive ora e
+  Tempo reale una minimappa mostra il proprio QTH, la DXpedition selezionata e la linea del
+  percorso corto (cerchio massimo) tra i due, con distanza e azimut.
 - **QRZ.com**: scheda del nominativo selezionato nel riquadro a destra, ridimensionabile.
 - **Log ADIF**: importando il proprio log, la colonna "Già collegata" indica nominativi ed
   entità DXCC già fatti, con banda e modo.
@@ -123,7 +128,7 @@ inizia a rifiutare le richieste, conviene aumentare quel valore.
 
 ## Riquadro QRZ.com
 
-Nelle schede "Attive ora" e "Tempo reale" il riquadro a destra mostra la scheda QRZ.com del
+Nelle schede "On air", "Attive ora" e "Tempo reale" il riquadro a destra mostra la scheda QRZ.com del
 nominativo selezionato (nome, indirizzo, locator, foto, QSL manager, LoTW/eQSL, e-mail).
 Utente e password si inseriscono in Impostazioni > QRZ.com.
 

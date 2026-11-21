@@ -118,6 +118,76 @@
         </Border>
 
         <TabControl x:Name="Tabs" Grid.Row="2" Foreground="{DynamicResource Fg}">
+            <!-- ON AIR -->
+            <TabItem Header="{Binding OnAirHeader}" x:Name="OnAirTab">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="5" />
+                        <ColumnDefinition Width="330" MinWidth="180" MaxWidth="600" />
+                    </Grid.ColumnDefinitions>
+                    <DockPanel Grid.Column="0">
+                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="16,10,16,8">
+                            <Border Style="{StaticResource OnAirPill}" VerticalAlignment="Center" Margin="0,0,10,0">
+                                <TextBlock Text="ON AIR" Foreground="White" FontWeight="Bold" FontSize="11" />
+                            </Border>
+                            <TextBlock Text="{Binding OnAirSummary}" Foreground="{DynamicResource Muted}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                        </StackPanel>
+                        <ContentControl DockPanel.Dock="Bottom" Content="{Binding SelectedOnAir}" ContentTemplate="{StaticResource DxDetails}"
+                                        Focusable="False">
+                            <ContentControl.Style>
+                                <Style TargetType="ContentControl">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding SelectedOnAir}" Value="{x:Null}">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ContentControl.Style>
+                        </ContentControl>
+                        <DataGrid ItemsSource="{Binding OnAir}" SelectedItem="{Binding SelectedOnAir}" BorderThickness="0,1,0,0"
+                                  MouseDoubleClick="Grid_DoubleClick">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="★" Binding="{Binding FavoriteMark}" Width="30" />
+                                <DataGridTextColumn Header="Nominativo" Binding="{Binding Callsign}" FontWeight="SemiBold" Width="110" />
+                                <DataGridTextColumn Header="Entità DXCC" Binding="{Binding Entity}" Width="170" />
+                                <DataGridTextColumn Header="Già collegata" Binding="{Binding WorkedText}" Width="150" />
+                                <DataGridTextColumn Header="Frequenza kHz" Binding="{Binding LastSpot.FreqKhz, StringFormat={}{0:0.0}}" Width="110" />
+                                <DataGridTextColumn Header="Banda" Binding="{Binding LastSpot.Band}" Width="62" />
+                                <DataGridTextColumn Header="Modo" Binding="{Binding LastSpot.Mode}" Width="62" />
+                                <DataGridTextColumn Header="Ultimo spot UTC (locale)" Binding="{Binding LastSpotTime}" SortMemberPath="LastSpot.TimeUtc" Width="170" />
+                                <DataGridTextColumn Header="Spotter" Binding="{Binding LastSpot.Spotter}" Width="100" />
+                                <DataGridTextColumn Header="Commento" Binding="{Binding LastSpot.Comment}" Width="180" />
+                                <DataGridTextColumn Header="Rimangono" Binding="{Binding DaysLeftText}" SortMemberPath="DaysLeft" Width="112" />
+                                <DataGridTextColumn Header="QSL via" Binding="{Binding Qsl}" Width="120" />
+                                <DataGridTextColumn Header="Distanza" Binding="{Binding DistanceText}" SortMemberPath="DistanceKm" Width="92" />
+                                <DataGridTextColumn Header="Azimut" Binding="{Binding AzimuthText}" SortMemberPath="Azimuth" Width="62" />
+                                <DataGridTemplateColumn Header="Link" Width="*" MinWidth="56">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Style="{StaticResource LinkButton}" Content="Apri" Click="OpenLink_Click" ToolTip="{Binding Url}" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DockPanel>
+                    <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                  ResizeBehavior="PreviousAndNext" Background="{DynamicResource Line}" Cursor="SizeWE" />
+                    <Grid Grid.Column="2">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="220" MinHeight="80" />
+                            <RowDefinition Height="5" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+                        <wv2:WebView2 x:Name="OnAirMiniMap" Grid.Row="0" Loaded="MiniMap_Loaded" />
+                        <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                      ResizeBehavior="PreviousAndNext" Background="{DynamicResource Line}" Cursor="SizeNS" />
+                        <ContentControl Grid.Row="2" Content="{Binding Qrz}" ContentTemplate="{StaticResource QrzPanelTemplate}" Focusable="False" />
+                    </Grid>
+                </Grid>
+            </TabItem>
+
             <!-- ATTIVE ORA -->
             <TabItem Header="Attive ora">
                 <Grid>
@@ -186,7 +256,7 @@
                             <RowDefinition Height="5" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                        <wv2:WebView2 x:Name="ActiveMiniMap" Grid.Row="0" Loaded="ActiveMiniMap_Loaded" />
+                        <wv2:WebView2 x:Name="ActiveMiniMap" Grid.Row="0" Loaded="MiniMap_Loaded" />
                         <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                                       ResizeBehavior="PreviousAndNext" Background="{DynamicResource Line}" Cursor="SizeNS" />
                         <ContentControl Grid.Row="2" Content="{Binding Qrz}" ContentTemplate="{StaticResource QrzPanelTemplate}" Focusable="False" />
@@ -251,7 +321,7 @@
                             <RowDefinition Height="5" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                        <wv2:WebView2 x:Name="SpotMiniMap" Grid.Row="0" Loaded="SpotMiniMap_Loaded" />
+                        <wv2:WebView2 x:Name="SpotMiniMap" Grid.Row="0" Loaded="MiniMap_Loaded" />
                         <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                                       ResizeBehavior="PreviousAndNext" Background="{DynamicResource Line}" Cursor="SizeNS" />
                         <ContentControl Grid.Row="2" Content="{Binding Qrz}" ContentTemplate="{StaticResource QrzPanelTemplate}" Focusable="False" />
@@ -263,12 +333,32 @@
             <TabItem Header="Pianificate">
                 <DockPanel>
                     <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="16,8">
-                        <ComboBox ItemsSource="{Binding Months}" SelectedIndex="{Binding SelectedMonth}" Width="150" Margin="0,0,8,0" ToolTip="Filtro per mese" />
+                        <CheckBox Content="Vista calendario" IsChecked="{Binding CalendarView}" Margin="0,0,20,0" />
+                        <ComboBox ItemsSource="{Binding Months}" SelectedIndex="{Binding SelectedMonth}" Width="150" Margin="0,0,8,0" ToolTip="Filtro per mese">
+                            <ComboBox.Style>
+                                <Style TargetType="ComboBox" BasedOn="{StaticResource {x:Type ComboBox}}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CalendarView}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ComboBox.Style>
+                        </ComboBox>
                         <ComboBox ItemsSource="{Binding Continents}" SelectedIndex="{Binding SelectedContinent}" Width="160" Margin="0,0,8,0" ToolTip="Filtro per continente" />
                         <TextBlock Text="Entità o nominativo:" VerticalAlignment="Center" Margin="8,0,6,0" Foreground="{DynamicResource Muted}" />
                         <TextBox Text="{Binding EntityFilter, UpdateSourceTrigger=PropertyChanged}" Width="180" />
-                        <CheckBox Content="Vista calendario" IsChecked="{Binding CalendarView}" Margin="20,0,0,0" />
-                        <TextBlock Text="{Binding PlannedSummary}" VerticalAlignment="Center" Margin="12,0,0,0" Foreground="{DynamicResource Muted}" />
+                        <TextBlock Text="{Binding PlannedSummary}" VerticalAlignment="Center" Margin="12,0,0,0" Foreground="{DynamicResource Muted}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding CalendarView}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
                     </StackPanel>
                     <Grid>
                         <DockPanel>
@@ -322,42 +412,211 @@
                             </DataGrid>
                         </DockPanel>
 
-                        <!-- Vista calendario: i dodici mesi dell'anno in corso -->
-                        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Visibility="{Binding CalendarView, Converter={StaticResource BoolToVis}}">
-                            <ItemsControl ItemsSource="{Binding Calendar}" Margin="10,0,10,10">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <WrapPanel />
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border x:Name="card" Background="{DynamicResource Panel}" BorderBrush="{DynamicResource Line}" BorderThickness="1"
-                                                CornerRadius="6" Margin="6" Padding="12,8" MinHeight="90" Width="400" VerticalAlignment="Top">
-                                            <StackPanel>
-                                                <DockPanel>
-                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding Count}" Foreground="{DynamicResource Muted}" />
-                                                    <TextBlock Text="{Binding Title}" FontSize="15" FontWeight="SemiBold" />
-                                                </DockPanel>
-                                                <ItemsControl ItemsSource="{Binding Lines}" Margin="0,6,0,0">
-                                                    <ItemsControl.ItemTemplate>
-                                                        <DataTemplate>
-                                                            <TextBlock Text="{Binding}" FontFamily="Consolas" FontSize="12" TextTrimming="CharacterEllipsis" Margin="0,1" />
-                                                        </DataTemplate>
-                                                    </ItemsControl.ItemTemplate>
-                                                </ItemsControl>
-                                            </StackPanel>
-                                        </Border>
-                                        <DataTemplate.Triggers>
-                                            <DataTrigger Binding="{Binding IsCurrent}" Value="True">
-                                                <Setter TargetName="card" Property="BorderBrush" Value="{DynamicResource Accent}" />
-                                                <Setter TargetName="card" Property="BorderThickness" Value="2" />
+                        <!-- Vista calendario: un mese, sei settimane da lunedì -->
+                        <DockPanel Visibility="{Binding CalendarView, Converter={StaticResource BoolToVis}}">
+                            <ContentControl DockPanel.Dock="Bottom" Content="{Binding SelectedDayEntry.Row}" ContentTemplate="{StaticResource DxDetails}"
+                                            Focusable="False">
+                                <ContentControl.Style>
+                                    <Style TargetType="ContentControl">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding SelectedDayEntry}" Value="{x:Null}">
+                                                <Setter Property="Visibility" Value="Collapsed" />
                                             </DataTrigger>
-                                        </DataTemplate.Triggers>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </ScrollViewer>
+                                        </Style.Triggers>
+                                    </Style>
+                                </ContentControl.Style>
+                            </ContentControl>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="5" />
+                                    <ColumnDefinition Width="340" MinWidth="220" MaxWidth="600" />
+                                </Grid.ColumnDefinitions>
+
+                                <DockPanel Grid.Column="0" Margin="12,0,8,8">
+                                    <!-- Mese e navigazione -->
+                                    <DockPanel DockPanel.Dock="Top" Margin="3,0,3,10">
+                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Button Content="‹" Command="{Binding PrevMonthCommand}" Width="34" Padding="0,2" FontSize="16" ToolTip="Mese precedente" />
+                                            <Button Content="Oggi" Command="{Binding ThisMonthCommand}" Margin="6,0" />
+                                            <Button Content="›" Command="{Binding NextMonthCommand}" Width="34" Padding="0,2" FontSize="16" ToolTip="Mese successivo" />
+                                            <TextBlock Text="{Binding CalendarTitle}" FontSize="22" FontWeight="SemiBold" Margin="16,0,0,0" VerticalAlignment="Center" />
+                                            <TextBlock Text="{Binding CalendarSummary}" Foreground="{DynamicResource Muted}" Margin="14,4,0,0" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <ItemsControl ItemsSource="{Binding Legend}" HorizontalAlignment="Right" VerticalAlignment="Center" Focusable="False">
+                                            <ItemsControl.ItemsPanel>
+                                                <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                                            </ItemsControl.ItemsPanel>
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <StackPanel Orientation="Horizontal" Margin="10,2,0,2">
+                                                        <Ellipse Width="9" Height="9" Fill="{Binding Color}" VerticalAlignment="Center" />
+                                                        <TextBlock Text="{Binding Name}" FontSize="12" Foreground="{DynamicResource Muted}" Margin="5,0,0,0" />
+                                                    </StackPanel>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </DockPanel>
+
+                                    <!-- Giorni della settimana -->
+                                    <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding WeekDays}" Margin="0,0,0,2" Focusable="False">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate><UniformGrid Columns="7" /></ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Muted}" Margin="9,0,0,2" />
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
+                                    <!-- Griglia del mese -->
+                                    <ListBox ItemsSource="{Binding CalendarDays}" SelectedItem="{Binding SelectedDay}" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource Fg}"
+                                             ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                        <ListBox.ItemsPanel>
+                                            <ItemsPanelTemplate><UniformGrid Columns="7" Rows="6" /></ItemsPanelTemplate>
+                                        </ListBox.ItemsPanel>
+                                        <ListBox.ItemContainerStyle>
+                                            <Style TargetType="ListBoxItem">
+                                                <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                                <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                                                <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                                                <Setter Property="Cursor" Value="Hand" />
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="ListBoxItem">
+                                                            <Border x:Name="cell" Margin="3" CornerRadius="6" Padding="7,5" ClipToBounds="True"
+                                                                    Background="{DynamicResource Panel}" BorderBrush="{DynamicResource Line}" BorderThickness="1">
+                                                                <ContentPresenter />
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <DataTrigger Binding="{Binding IsWeekend}" Value="True">
+                                                                    <Setter TargetName="cell" Property="Background" Value="{DynamicResource PanelAlt}" />
+                                                                </DataTrigger>
+                                                                <DataTrigger Binding="{Binding IsCurrentMonth}" Value="False">
+                                                                    <Setter TargetName="cell" Property="Opacity" Value="0.45" />
+                                                                </DataTrigger>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter TargetName="cell" Property="Background" Value="{DynamicResource Hover}" />
+                                                                </Trigger>
+                                                                <DataTrigger Binding="{Binding IsToday}" Value="True">
+                                                                    <Setter TargetName="cell" Property="BorderBrush" Value="{DynamicResource Accent}" />
+                                                                </DataTrigger>
+                                                                <Trigger Property="IsSelected" Value="True">
+                                                                    <Setter TargetName="cell" Property="BorderBrush" Value="{DynamicResource Accent}" />
+                                                                    <Setter TargetName="cell" Property="BorderThickness" Value="2" />
+                                                                    <Setter TargetName="cell" Property="Background" Value="{DynamicResource Sel}" />
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </ListBox.ItemContainerStyle>
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <DockPanel>
+                                                    <DockPanel DockPanel.Dock="Top">
+                                                        <TextBlock DockPanel.Dock="Right" Text="{Binding ActiveText}" FontSize="11" Foreground="{DynamicResource Muted}"
+                                                                   VerticalAlignment="Center" />
+                                                        <Border x:Name="num" CornerRadius="11" MinWidth="24" Height="22" Padding="5,0" HorizontalAlignment="Left">
+                                                            <TextBlock x:Name="numText" Text="{Binding DayNumber}" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                        </Border>
+                                                    </DockPanel>
+                                                    <!-- Quante DXpedition sono attive, rispetto al giorno più pieno del mese -->
+                                                    <Border DockPanel.Dock="Top" Height="3" CornerRadius="1.5" Margin="0,3,0,4" Background="{DynamicResource Line}">
+                                                        <Border CornerRadius="1.5" Background="{DynamicResource Accent}" RenderTransformOrigin="0,0.5">
+                                                            <Border.RenderTransform>
+                                                                <ScaleTransform ScaleX="{Binding Activity}" />
+                                                            </Border.RenderTransform>
+                                                        </Border>
+                                                    </Border>
+                                                    <TextBlock DockPanel.Dock="Bottom" Text="{Binding MoreText}" FontSize="11" Foreground="{DynamicResource Muted}" />
+                                                    <ItemsControl ItemsSource="{Binding Starts}" Focusable="False">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <Border Background="{Binding Color}" CornerRadius="3" Padding="5,1" Margin="0,1" ToolTip="{Binding Tip}">
+                                                                    <TextBlock Text="{Binding Call}" Foreground="#10151A" FontWeight="SemiBold" FontSize="11" TextTrimming="CharacterEllipsis" />
+                                                                </Border>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </DockPanel>
+                                                <DataTemplate.Triggers>
+                                                    <DataTrigger Binding="{Binding IsToday}" Value="True">
+                                                        <Setter TargetName="num" Property="Background" Value="{DynamicResource Accent}" />
+                                                        <Setter TargetName="numText" Property="Foreground" Value="{DynamicResource AccentFg}" />
+                                                    </DataTrigger>
+                                                </DataTemplate.Triggers>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </DockPanel>
+
+                                <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                              ResizeBehavior="PreviousAndNext" Background="{DynamicResource Line}" Cursor="SizeWE" />
+
+                                <!-- Elenco del giorno selezionato -->
+                                <DockPanel Grid.Column="2" Background="{DynamicResource Panel}">
+                                    <StackPanel DockPanel.Dock="Top" Margin="14,10,14,8">
+                                        <TextBlock Text="{Binding SelectedDayTitle}" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                        <TextBlock Text="{Binding SelectedDaySubtitle}" Foreground="{DynamicResource Muted}" Margin="0,2,0,0" />
+                                    </StackPanel>
+                                    <ListBox ItemsSource="{Binding DayEntries}" SelectedItem="{Binding SelectedDayEntry}" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource Fg}"
+                                             HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                                             MouseDoubleClick="DayList_DoubleClick">
+                                        <ListBox.ItemContainerStyle>
+                                            <Style TargetType="ListBoxItem">
+                                                <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="ListBoxItem">
+                                                            <Border x:Name="b" Margin="8,2" CornerRadius="5" Background="Transparent">
+                                                                <ContentPresenter />
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter TargetName="b" Property="Background" Value="{DynamicResource Hover}" />
+                                                                </Trigger>
+                                                                <Trigger Property="IsSelected" Value="True">
+                                                                    <Setter TargetName="b" Property="Background" Value="{DynamicResource Sel}" />
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </ListBox.ItemContainerStyle>
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="4" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <Border CornerRadius="2" Background="{Binding Row.ContinentColor}" Margin="0,5" />
+                                                    <StackPanel Grid.Column="1" Margin="10,6,8,6">
+                                                        <DockPanel>
+                                                            <Border DockPanel.Dock="Right" Background="{DynamicResource Accent}" CornerRadius="8" Padding="7,0" VerticalAlignment="Center"
+                                                                    Visibility="{Binding HasTag, Converter={StaticResource BoolToVis}}">
+                                                                <TextBlock Text="{Binding Tag}" FontSize="11" Foreground="{DynamicResource AccentFg}" FontWeight="SemiBold" />
+                                                            </Border>
+                                                            <TextBlock>
+                                                                <Run Text="{Binding Row.Callsign, Mode=OneWay}" FontSize="14" FontWeight="Bold" /><Run Text=" " /><Run Text="{Binding Row.FavoriteMark, Mode=OneWay}" Foreground="{DynamicResource Warn}" />
+                                                            </TextBlock>
+                                                        </DockPanel>
+                                                        <TextBlock Text="{Binding Row.Entity}" TextTrimming="CharacterEllipsis" />
+                                                        <TextBlock Text="{Binding Details}" FontSize="12" Foreground="{DynamicResource Muted}" TextTrimming="CharacterEllipsis" />
+                                                        <TextBlock Text="{Binding Row.WorkedText}" FontSize="12" Foreground="{DynamicResource Accent}"
+                                                                   Visibility="{Binding HasWorked, Converter={StaticResource BoolToVis}}" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </DockPanel>
+                            </Grid>
+                        </DockPanel>
                     </Grid>
                 </DockPanel>
             </TabItem>
@@ -416,7 +675,7 @@
 
                         <TextBlock Text="QRZ.com" Style="{StaticResource SectionTitle}" />
                         <TextBlock Foreground="{DynamicResource Muted}" Margin="0,4,0,0" TextWrapping="Wrap"
-                                   Text="Con utente e password di QRZ.com il riquadro a destra di Attive ora e Tempo reale mostra la scheda del nominativo selezionato. I dati completi richiedono un abbonamento XML di QRZ; senza, arrivano solo quelli di base." />
+                                   Text="Con utente e password di QRZ.com il riquadro a destra di On air, Attive ora e Tempo reale mostra la scheda del nominativo selezionato. I dati completi richiedono un abbonamento XML di QRZ; senza, arrivano solo quelli di base." />
                         <StackPanel Orientation="Horizontal">
                             <StackPanel Margin="0,0,16,0">
                                 <TextBlock Text="Utente QRZ (nominativo)" Style="{StaticResource FieldLabel}" />

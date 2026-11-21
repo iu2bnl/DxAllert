@@ -71,12 +71,15 @@ public partial class MainViewModel : ObservableObject
     public event Action<string>? MapDataChanged;
     public event Action<Alert>? AlertRaised;
     public event Action<bool>? ThemeChanged;
+    /// <summary>Nominativo o locator cambiati: le minimappe ridisegnano il QTH.</summary>
+    public event Action? HomeChanged;
 
+    public ObservableCollection<DxRow> OnAir { get; } = new();
     public ObservableCollection<DxRow> Active { get; } = new();
     public ObservableCollection<DxRow> Planned { get; } = new();
     public ObservableCollection<SpotRow> Spots { get; } = new();
     public ICollectionView SpotsView { get; }
-    public ObservableCollection<MonthCard> Calendar { get; } = new();
+
 
     public string[] Months { get; }
     public string[] Continents { get; } = { "Tutti i continenti", "EU", "AF", "AS", "NA", "SA", "OC", "AN" };
@@ -91,7 +94,10 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private int _selectedMonth;
     [ObservableProperty] private int _selectedContinent;
     [ObservableProperty] private string _entityFilter = "";
-    [ObservableProperty] private bool _calendarView;
+    [ObservableProperty] private bool _calendarView = true;
+    [ObservableProperty] private DxRow? _selectedOnAir;
+    [ObservableProperty] private string _onAirSummary = "";
+    [ObservableProperty] private string _onAirHeader = "On air";
     [ObservableProperty] private string _activeSummary = "";
     [ObservableProperty] private string _plannedSummary = "";
 
@@ -104,6 +110,7 @@ public partial class MainViewModel : ObservableObject
 
     // Il valore null arriva anche quando le tabelle si ricostruiscono: il riquadro resta com'è.
     partial void OnSelectedActiveChanged(DxRow? value) { if (value is not null) _ = ShowQrzAsync(value.Callsign); }
+    partial void OnSelectedOnAirChanged(DxRow? value) { if (value is not null) _ = ShowQrzAsync(value.Callsign); }
     partial void OnSelectedSpotChanged(SpotRow? value) { if (value is not null) _ = ShowQrzAsync(value.DxCall); }
 
     private async Task ShowQrzAsync(string call, bool force = false)
@@ -252,6 +259,15 @@ public partial class MainViewModel : ObservableObject
         SpotFreqFrom = "";
         SpotFreqTo = "";
     }
+    /// <summary>Posizione del QTH per le minimappe (null se il locator non è impostato).</summary>
+    public string HomeJson()
+    {
+        var h = Geo.LocatorToLatLon(_settings.Locator);
+        return JsonSerializer.Serialize(h is { } p
+            ? new { lat = p.Lat, lon = p.Lon, call = _settings.Callsign, locator = _settings.Locator }
+            : null);
+    }
+
     partial void OnSelectedMonthChanged(int value) => RebuildPlanned();
     partial void OnSelectedContinentChanged(int value) => RebuildPlanned();
     partial void OnEntityFilterChanged(string value) => RebuildPlanned();
@@ -447,20 +463,24 @@ public partial class MainViewModel : ObservableObject
 
     private bool Wanted(Dxpedition d) => _settings.IncludeSpecialEvents || !d.IsSpecialEvent;
 
+    /// <summary>Filtri di continente ed entità/nominativo della scheda "Pianificate".</summary>
+    private bool MatchesPlannedFilters(Dxpedition d)
+    {
+        var continent = SelectedContinent > 0 ? Continents[SelectedContinent] : null;
+        var text = EntityFilter.Trim();
+        return Wanted(d) &&
+               (continent is null || d.Entity?.Continent == continent) &&
+               (text.Length == 0 ||
+                d.Callsign.Contains(text, StringComparison.OrdinalIgnoreCase) ||
+                (d.Entity?.Name ?? d.EntityName).Contains(text, StringComparison.OrdinalIgnoreCase));
+    }
+
     private void RebuildPlanned()
     {
         var now = DateTime.UtcNow;
         var home = Geo.LocatorToLatLon(_settings.Locator);
         var year = now.Year;
-        var continent = SelectedContinent > 0 ? Continents[SelectedContinent] : null;
-        var text = EntityFilter.Trim();
-
-        bool Matches(Dxpedition d) =>
-            Wanted(d) &&
-            (continent is null || d.Entity?.Continent == continent) &&
-            (text.Length == 0 ||
-             d.Callsign.Contains(text, StringComparison.OrdinalIgnoreCase) ||
-             (d.Entity?.Name ?? d.EntityName).Contains(text, StringComparison.OrdinalIgnoreCase));
+        bool Matches(Dxpedition d) => MatchesPlannedFilters(d);
 
         static bool InMonth(Dxpedition d, int y, int m)
         {
@@ -475,23 +495,119 @@ public partial class MainViewModel : ObservableObject
                      .OrderBy(d => d.StartUtc ?? DateTime.MaxValue).ThenBy(d => d.Callsign))
             Planned.Add(new DxRow(d, home, AlertEngine.IsFavorite(d, _settings), _worked));
 
-        // Vista calendario: i dodici mesi dell'anno in corso, comprese le operazioni già attive.
-        Calendar.Clear();
-        for (int m = 1; m <= 12; m++)
-        {
-            var lines = _all
-                .Where(d => d.StatusAt(now) is DxStatus.Planned or DxStatus.Active && d.StartUtc is not null &&
-                            Matches(d) && InMonth(d, year, m))
-                .OrderBy(d => d.StartUtc)
-                .Select(d => $"{d.StartUtc:dd/MM}–{(d.EndUtc is { } e ? e.ToString("dd/MM") : "?")}  {d.Callsign}  {d.Entity?.Name ?? d.EntityName}")
-                .ToList();
-            Calendar.Add(new MonthCard($"{Months[m]} {year}", m == now.Month, lines));
-        }
         PlannedSummary = $"{Planned.Count} pianificate";
+        BuildCalendar();
     }
 
-    private void UpdateSummaries() =>
+    private void UpdateSummaries()
+    {
         ActiveSummary = $"{Active.Count} attive · {Active.Count(r => r.IsOnAir)} on air adesso";
+        RebuildOnAir();
+    }
+
+    /// <summary>Scheda "On air": le attive spottate negli ultimi 15 minuti, la più recente in alto.</summary>
+    private void RebuildOnAir()
+    {
+        var rows = Active.Where(r => r.IsOnAir).OrderByDescending(r => r.LastSpot?.TimeUtc).ToList();
+        if (!rows.SequenceEqual(OnAir))
+        {
+            var selected = SelectedOnAir?.Callsign;
+            OnAir.Clear();
+            foreach (var r in rows) OnAir.Add(r);
+            SelectedOnAir = OnAir.FirstOrDefault(r => r.Callsign == selected);
+        }
+        OnAirHeader = OnAir.Count > 0 ? $"On air ({OnAir.Count})" : "On air";
+        OnAirSummary = OnAir.Count switch
+        {
+            0 => "Nessuna DXpedition on air in questo momento. Compaiono qui appena il cluster le spotta, e restano finché arrivano spot (ultimi 15 minuti).",
+            1 => "1 DXpedition on air · spottata negli ultimi 15 minuti",
+            var n => $"{n} DXpedition on air · spottate negli ultimi 15 minuti",
+        };
+    }
+
+    // ---------------------------------------------------------------- calendario delle pianificate
+
+    public ObservableCollection<CalendarDay> CalendarDays { get; } = new();
+    public ObservableCollection<CalendarEntry> DayEntries { get; } = new();
+    public IReadOnlyList<LegendItem> Legend => ContinentColors.Legend;
+    public string[] WeekDays { get; } = { "LUN", "MAR", "MER", "GIO", "VEN", "SAB", "DOM" };
+
+    private DateTime _calendarMonth = new(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+    [ObservableProperty] private string _calendarTitle = "";
+    [ObservableProperty] private string _calendarSummary = "";
+    [ObservableProperty] private CalendarDay? _selectedDay;
+    [ObservableProperty] private CalendarEntry? _selectedDayEntry;
+    [ObservableProperty] private string _selectedDayTitle = "";
+    [ObservableProperty] private string _selectedDaySubtitle = "";
+
+    partial void OnSelectedDayChanged(CalendarDay? value)
+    {
+        DayEntries.Clear();
+        SelectedDayEntry = null;
+        if (value is null) { SelectedDayTitle = SelectedDaySubtitle = ""; return; }
+        foreach (var r in value.Rows
+                     .OrderByDescending(r => r.Start?.Date == value.Date)
+                     .ThenBy(r => r.End ?? r.Start).ThenBy(r => r.Callsign))
+            DayEntries.Add(new CalendarEntry(r, value.Date));
+        SelectedDayTitle = Capitalize(value.Date.ToString("dddd d MMMM yyyy", It));
+        var starting = value.Rows.Count(r => r.Start?.Date == value.Date);
+        SelectedDaySubtitle = value.Rows.Count == 0
+            ? "Nessuna DXpedition in questo giorno."
+            : $"{value.ActiveText}" + (starting > 0 ? $" · {starting} iniziano" : "");
+    }
+
+    [RelayCommand]
+    private void PrevMonth() { _calendarMonth = _calendarMonth.AddMonths(-1); BuildCalendar(); }
+
+    [RelayCommand]
+    private void NextMonth() { _calendarMonth = _calendarMonth.AddMonths(1); BuildCalendar(); }
+
+    [RelayCommand]
+    private void ThisMonth()
+    {
+        var today = DateTime.UtcNow.Date;
+        _calendarMonth = new DateTime(today.Year, today.Month, 1);
+        SelectedDay = null;
+        BuildCalendar();
+    }
+
+    /// <summary>Sei settimane da lunedì, con le DXpedition (pianificate, attive e concluse) che toccano ciascun giorno.</summary>
+    private void BuildCalendar()
+    {
+        var home = Geo.LocatorToLatLon(_settings.Locator);
+        var today = DateTime.UtcNow.Date;
+        var first = _calendarMonth;
+        var gridStart = first.AddDays(-(((int)first.DayOfWeek + 6) % 7));
+        var gridEnd = gridStart.AddDays(42);
+
+        var rows = _all
+            .Where(d => d.StartUtc is { } s && s.Date < gridEnd && (d.EndUtc ?? s).Date >= gridStart && MatchesPlannedFilters(d))
+            .OrderBy(d => d.StartUtc).ThenBy(d => d.Callsign)
+            .Select(d => new DxRow(d, home, AlertEngine.IsFavorite(d, _settings), _worked))
+            .ToList();
+
+        static bool On(DxRow r, DateTime day) => r.Start!.Value.Date <= day && (r.End ?? r.Start)!.Value.Date >= day;
+        var perDay = Enumerable.Range(0, 42).Select(i => rows.Where(r => On(r, gridStart.AddDays(i))).ToList()).ToList();
+        var busiest = Math.Max(1, perDay.Max(l => l.Count));
+
+        var keep = SelectedDay?.Date;
+        CalendarDays.Clear();
+        for (int i = 0; i < 42; i++)
+        {
+            var day = gridStart.AddDays(i);
+            CalendarDays.Add(new CalendarDay(day, day.Month == first.Month, day == today, perDay[i], perDay[i].Count / (double)busiest));
+        }
+
+        var monthName = Capitalize(first.ToString("MMMM yyyy", It));
+        CalendarTitle = monthName;
+        var inMonth = rows.Count(r => r.Start!.Value.Date <= first.AddMonths(1).AddDays(-1) && (r.End ?? r.Start)!.Value.Date >= first);
+        var startsInMonth = rows.Count(r => r.Start!.Value.Year == first.Year && r.Start.Value.Month == first.Month);
+        CalendarSummary = $"{inMonth} DXpedition nel mese · {startsInMonth} iniziano";
+
+        bool InShownMonth(DateTime? d) => d is { } x && x.Year == first.Year && x.Month == first.Month;
+        var target = InShownMonth(keep) ? keep : InShownMonth(today) ? today : first;
+        SelectedDay = CalendarDays.FirstOrDefault(d => d.Date == target);
+    }
 
     // ---------------------------------------------------------------- spot e avvisi
 
@@ -701,6 +817,7 @@ public partial class MainViewModel : ObservableObject
         if (Qrz.HasCall) _ = ShowQrzAsync(Qrz.Call, force: true);
         if (themeChanged) ThemeChanged?.Invoke(_settings.DarkTheme);
         if (nodesChanged && _web is not null) StartClusters();
+        HomeChanged?.Invoke();
         Rebuild();
     }
 

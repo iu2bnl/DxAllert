@@ -56,6 +56,7 @@ public partial class DxRow : ObservableObject
     public double? Azimuth { get; }
     public string DistanceText => DistanceKm is { } d ? $"{d:0} km" : "";
     public string AzimuthText => Azimuth is { } a ? $"{a:0}°" : "";
+    public string ContinentColor => ContinentColors.Of(Continent);
     /// <summary>Dal log ADIF: "✓ 20m FT8" (nominativo già collegato), "~ 20m SSB" (solo l'entità), vuoto se nuovo.</summary>
     public string WorkedText { get; }
 
@@ -66,7 +67,10 @@ public partial class DxRow : ObservableObject
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(LastSpotText))]
+    [NotifyPropertyChangedFor(nameof(LastSpotTime))]
     private Spot? _lastSpot;
+
+    public string LastSpotTime => LastSpot is { } s ? Fmt.Time(s.TimeUtc) : "";
 
     [ObservableProperty] private bool _isOnAir;
 
@@ -138,7 +142,87 @@ public partial class CheckItem : ObservableObject
     [ObservableProperty] private bool _isChecked;
 }
 
-public sealed record MonthCard(string Title, bool IsCurrent, List<string> Lines)
+/// <summary>Colore di ciascun continente nel calendario e nella sua legenda.</summary>
+public static class ContinentColors
 {
-    public string Count => Lines.Count == 0 ? "nessuna" : Lines.Count.ToString();
+    public static string Of(string continent) => continent switch
+    {
+        "EU" => "#42A5F5",
+        "AF" => "#FFA726",
+        "AS" => "#EF5350",
+        "NA" => "#66BB6A",
+        "SA" => "#AB47BC",
+        "OC" => "#26C6DA",
+        "AN" => "#B0BEC5",
+        _ => "#8D99A6",
+    };
+
+    public static readonly IReadOnlyList<LegendItem> Legend = new[]
+    {
+        new LegendItem("Europa", Of("EU")), new LegendItem("Africa", Of("AF")), new LegendItem("Asia", Of("AS")),
+        new LegendItem("Nord America", Of("NA")), new LegendItem("Sud America", Of("SA")),
+        new LegendItem("Oceania", Of("OC")), new LegendItem("Antartide", Of("AN")),
+    };
+}
+
+public sealed record LegendItem(string Name, string Color);
+
+/// <summary>Etichetta di una DXpedition che inizia in un giorno del calendario.</summary>
+public sealed class CalendarChip
+{
+    public CalendarChip(DxRow row) => Row = row;
+    public DxRow Row { get; }
+    public string Call => Row.Callsign;
+    public string Color => Row.ContinentColor;
+    public string Tip => $"{Row.Callsign} · {Row.Entity}\n{Row.StartText} – {Row.EndText}";
+}
+
+/// <summary>Una casella del calendario mensile.</summary>
+public sealed class CalendarDay
+{
+    private const int MaxChips = 2;
+
+    public CalendarDay(DateTime date, bool isCurrentMonth, bool isToday, List<DxRow> rows, double activity)
+    {
+        Date = date;
+        IsCurrentMonth = isCurrentMonth;
+        IsToday = isToday;
+        Rows = rows;
+        Activity = activity;
+        var starts = rows.Where(r => r.Start?.Date == date).ToList();
+        Starts = starts.Take(MaxChips).Select(r => new CalendarChip(r)).ToList();
+        MoreText = starts.Count > MaxChips ? $"+{starts.Count - MaxChips} iniziano" : "";
+    }
+
+    public DateTime Date { get; }
+    public bool IsCurrentMonth { get; }
+    public bool IsToday { get; }
+    public bool IsWeekend => Date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
+    public string DayNumber => Date.Day.ToString(CultureInfo.InvariantCulture);
+    /// <summary>DXpedition attive in questo giorno.</summary>
+    public List<DxRow> Rows { get; }
+    /// <summary>Da 0 a 1: quante sono attive rispetto al giorno più affollato del mese.</summary>
+    public double Activity { get; }
+    public List<CalendarChip> Starts { get; }
+    public string MoreText { get; }
+    public string ActiveText => Rows.Count switch { 0 => "", 1 => "1 attiva", var n => $"{n} attive" };
+}
+
+/// <summary>Riga dell'elenco del giorno selezionato nel calendario.</summary>
+public sealed class CalendarEntry
+{
+    public CalendarEntry(DxRow row, DateTime day)
+    {
+        Row = row;
+        var starts = row.Start?.Date == day;
+        var ends = (row.End ?? row.Start)?.Date == day;
+        Tag = starts && ends ? "solo oggi" : starts ? "inizia" : ends ? "ultimo giorno" : "";
+    }
+
+    public DxRow Row { get; }
+    public string Tag { get; }
+    public bool HasTag => Tag.Length > 0;
+    public bool HasWorked => Row.WorkedText.Length > 0;
+    public string Dates => $"{Row.StartText} – {Row.EndText}";
+    public string Details => string.Join(" · ", new[] { Dates, Row.Bands, Row.Modes }.Where(s => s.Length > 0));
 }
