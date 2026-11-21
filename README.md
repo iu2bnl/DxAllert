@@ -18,7 +18,9 @@ reale (spot dal DX cluster) e quelle pianificate.
   in ciascun giorno, colorate per continente, e il numero di quelle attive; cliccando un giorno
   si vede a destra l'elenco completo. In alternativa la tabella, con filtri per mese,
   continente ed entità.
-- **Mappa**: tutte le operazioni sulla mappa del mondo. Nelle schede On air, Attive ora e
+- **Mappa**: tutte le operazioni sulla mappa del mondo, con confini e nomi degli stati in italiano
+  (disegnati dal programma, funzionano anche senza internet); da zoom 6 in su compaiono le
+  tessere OpenStreetMap per i dettagli. Nelle schede On air, Attive ora e
   Tempo reale una minimappa mostra il proprio QTH, la DXpedition selezionata e la linea del
   percorso corto (cerchio massimo) tra i due, con distanza e azimut.
 - **QRZ.com**: scheda del nominativo selezionato nel riquadro a destra, ridimensionabile.
@@ -123,6 +125,7 @@ La disinstallazione non cancella questa cartella.
 | country-files.com | `cty.dat`, `cty.csv` | nominativo -> entità DXCC; numero DXCC (ADIF) |
 | K0SWE dxcc-json | `Assets\dxcc.csv` (ricavato una volta) | paese di ciascuna entità, per la bandiera; licenza Apache 2.0 in `Assets\licenses` |
 | flagcdn.com | `Assets\flags` | bandiere (pubblico dominio) |
+| Natural Earth | `Assets\map\countries.js` (ricavato una volta, 1:50m) | confini e nomi italiani degli stati sulla mappa (pubblico dominio) |
 
 Escluse: **DXMaps** (i termini d'uso vietano l'uso dei dati in programmi) e **DXNews**
 (il dominio non risultava raggiungibile; il modulo `DxNewsSource` è pronto ma spento).

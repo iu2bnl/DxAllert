@@ -852,7 +852,7 @@
                         <TextBlock Text="{Binding SettingsMessage}" Margin="0,10,0,0" TextWrapping="Wrap" Foreground="{DynamicResource Warn}" />
 
                         <TextBlock Margin="0,26,0,0" TextWrapping="Wrap" Foreground="{DynamicResource Muted}"
-                                   Text="Fonti dei dati: DXZone, 425 DX News, NG3K Announced DX Operations, DX-World. Spot: DX cluster e DXSummit. Entità DXCC: country-files.com (cty.dat, cty.csv); paese di ogni entità: dxcc-json di K0SWE (Apache 2.0). Bandiere: flagcdn.com. Mappa © OpenStreetMap. Le liste si aggiornano ogni minuto." />
+                                   Text="Fonti dei dati: DXZone, 425 DX News, NG3K Announced DX Operations, DX-World. Spot: DX cluster e DXSummit. Entità DXCC: country-files.com (cty.dat, cty.csv); paese di ogni entità: dxcc-json di K0SWE (Apache 2.0). Bandiere: flagcdn.com. Mappa: stati e nomi da Natural Earth, dettagli © OpenStreetMap. Le liste si aggiornano ogni minuto." />
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>

@@ -8,7 +8,15 @@
   html, body, #map { height: 100%; margin: 0; }
   body { font-family: "Segoe UI", sans-serif; font-size: 13px; }
   body.dark { background: #1b1f24; }
-  body.dark .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9); }
+  /* Mare: è lo sfondo della mappa, le terre sono disegnate sopra */
+  #map.leaflet-container { background: #a9cfe0; }
+  body.dark #map.leaflet-container { background: #0f1b26; }
+  body.dark.detail .leaflet-tile-pane { filter: invert(1) hue-rotate(180deg) brightness(0.9) contrast(0.9); }
+  .country-label { color: #3d4650; font: 600 11px "Segoe UI", sans-serif; letter-spacing: .3px; white-space: nowrap;
+                   text-shadow: 0 0 3px #fff, 0 0 3px #fff, 0 0 2px #fff; transform: translate(-50%, -50%); pointer-events: none; }
+  body.dark .country-label { color: #c3ccd6; text-shadow: 0 0 3px #000, 0 0 3px #000, 0 0 2px #000; }
+  .country-label.big { font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
+
   body.dark .leaflet-popup-content-wrapper, body.dark .leaflet-popup-tip,
   body.dark .legend, body.dark .pathinfo { background: #262b32; color: #e6e9ee; }
   body.dark .leaflet-popup-content a { color: #7fbfff; }
@@ -34,12 +42,56 @@
 <body>
 <div id="map"></div>
 <script src="leaflet.js"></script>
+<script src="countries.js"></script>
 <script>
   const map = L.map('map', { worldCopyJump: true, minZoom: 1 }).setView([25, 10], 2);
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  // Stati disegnati dal programma (Natural Earth, pubblico dominio) con i nomi in italiano:
+  // si vedono anche senza internet. Da zoom 6 in su servono i dettagli e compaiono le tessere OpenStreetMap.
+  const DETAIL_ZOOM = 6;
+  map.createPane('land');   map.getPane('land').style.zIndex = 250;
+  map.createPane('labels'); map.getPane('labels').style.zIndex = 450; map.getPane('labels').style.pointerEvents = 'none';
+  const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 10,
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-  }).addTo(map);
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> · Stati: Natural Earth'
+  });
+  const landStyle = dark => ({ pane: 'land', weight: 0.8, color: dark ? '#56636f' : '#9aa3ab', fillColor: dark ? '#252e37' : '#f4f1ea', fillOpacity: 1 });
+  const canvas = L.canvas({ pane: 'land', padding: 0.5 });
+  const land = [], labels = [];
+  // Tre copie del mondo (-360, 0, +360) così ai lati non resta il vuoto quando si scorre.
+  for (const off of [-360, 0, 360]) {
+    land.push(L.geoJSON({ type: 'FeatureCollection', features: (window.NE_COUNTRIES || []).map(c => ({ type: 'Feature', properties: {}, geometry: c.g })) }, {
+      renderer: canvas, interactive: false, style: landStyle(false),
+      coordsToLatLng: c => L.latLng(c[1], c[0] + off)
+    }).addTo(map));
+    for (const c of window.NE_COUNTRIES || []) {
+      const big = c.p.m <= 2;
+      labels.push({ min: c.p.m, marker: L.marker([c.p.y, c.p.x + off], {
+        pane: 'labels', interactive: false, keyboard: false,
+        icon: L.divIcon({ className: '', html: '<div class="country-label' + (big ? ' big' : '') + '">' + c.p.n.replace(/&/g, '&amp;').replace(/</g, '&lt;') + '</div>', iconSize: [0, 0] })
+      }) });
+    }
+  }
+  let baseDark = null;
+  function setBaseTheme(dark) {
+    if (dark === baseDark) return;
+    baseDark = dark;
+    land.forEach(l => l.setStyle(landStyle(dark)));
+  }
+  // Un nome compare quando lo zoom raggiunge il suo livello (Natural Earth MIN_LABEL), finché le tessere non hanno i loro.
+  function updateBase() {
+    const z = map.getZoom(), detail = z >= DETAIL_ZOOM;
+    document.body.classList.toggle('detail', detail);
+    if (detail && !map.hasLayer(osm)) osm.addTo(map);
+    if (!detail && map.hasLayer(osm)) map.removeLayer(osm);
+    land.forEach(l => detail ? map.removeLayer(l) : (map.hasLayer(l) || l.addTo(map)));
+    for (const l of labels) {
+      const show = !detail && z + 0.5 >= l.min;
+      if (show !== map.hasLayer(l.marker)) show ? l.marker.addTo(map) : map.removeLayer(l.marker);
+    }
+  }
+  map.on('zoomend', updateBase);
+  setBaseTheme(false);
+  updateBase();
 
   const nightLayer = L.polygon([], { color: '#000', weight: 1, opacity: .35, fillColor: '#000', fillOpacity: .28, interactive: false }).addTo(map);
   const pathLayer = L.layerGroup().addTo(map);
@@ -136,6 +188,7 @@
   // Chiamata dal programma con i dati aggiornati.
   window.dxUpdate = function (data) {
     document.body.classList.toggle('dark', !!data.dark);
+    setBaseTheme(!!data.dark);
     home = data.home;
     markerLayer.clearLayers();
     if (home) {
