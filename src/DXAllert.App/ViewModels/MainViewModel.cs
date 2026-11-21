@@ -251,6 +251,14 @@ public partial class MainViewModel : ObservableObject
         return true;
     }
 
+    /// <summary>Imbuto accanto alla banda di uno spot: filtra la tabella su quella banda.</summary>
+    [RelayCommand]
+    private void FilterBand(string? band)
+    {
+        var i = Array.IndexOf(SpotBands, band);
+        if (i > 0) SelectedSpotBand = i;
+    }
+
     [RelayCommand]
     private void ClearSpotFilters()
     {
@@ -620,7 +628,7 @@ public partial class MainViewModel : ObservableObject
                                     Math.Abs((s.Spot.TimeUtc - spot.TimeUtc).TotalMinutes) < 3))
             return;
 
-        Spots.Insert(0, new SpotRow(spot, row, row is null ? _cty?.Resolve(spot.DxCall) : null, _worked));
+        Spots.Insert(0, new SpotRow(spot, row, row is null ? _cty?.Resolve(spot.DxCall) : null, _worked, _cty?.Resolve(spot.Spotter)));
         while (Spots.Count > MaxSpotRows) Spots.RemoveAt(Spots.Count - 1);
         if (row is null) return;
 

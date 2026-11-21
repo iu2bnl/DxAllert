@@ -9,7 +9,10 @@ reale (spot dal DX cluster) e quelle pianificate.
   frequenza, banda, modo, spotter e commento dell'ultimo spot.
 - **Attive ora**: le DXpedition in corso, con l'etichetta ON AIR per quelle spottate negli
   ultimi 15 minuti, ultimo spot, QSL, distanza e azimut dal proprio locator.
-- **Tempo reale**: gli spot del DX cluster con filtri per banda, modo e frequenza.
+- **Tempo reale**: gli spot del DX cluster in stile cluster web: bandiera, nominativo DX in rosso
+  e spotter in verde, continente con numero DXCC e paese di entrambi; l'imbuto accanto alla banda
+  filtra su quella banda, le icone aprono la scheda su QRZ.com o HamQTH. Filtri per banda, modo
+  e frequenza.
 - **Pianificate**: calendario mensile (sei settimane da lunedì) con le DXpedition che iniziano
   in ciascun giorno, colorate per continente, e il numero di quelle attive; cliccando un giorno
   si vede a destra l'elenco completo. In alternativa la tabella, con filtri per mese,
@@ -116,7 +119,9 @@ La disinstallazione non cancella questa cartella.
 | DX-World | feed RSS | solo nominativo, entità e link: integra le altre fonti |
 | DX cluster | telnet, uno o più nodi | riconnessione automatica |
 | DXSummit | API JSON | riserva, solo quando nessun nodo telnet è collegato |
-| country-files.com | `cty.dat` | nominativo -> entità DXCC |
+| country-files.com | `cty.dat`, `cty.csv` | nominativo -> entità DXCC; numero DXCC (ADIF) |
+| K0SWE dxcc-json | `Assets\dxcc.csv` (ricavato una volta) | paese di ciascuna entità, per la bandiera; licenza Apache 2.0 in `Assets\licenses` |
+| flagcdn.com | `Assets\flags` | bandiere (pubblico dominio) |
 
 Escluse: **DXMaps** (i termini d'uso vietano l'uso dei dati in programmi) e **DXNews**
 (il dominio non risultava raggiungibile; il modulo `DxNewsSource` è pronto ma spento).

@@ -1,5 +1,6 @@
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
+using DXAllert.App.Services;
 using DXAllert.Core;
 
 namespace DXAllert.App.ViewModels;
@@ -102,7 +103,7 @@ public partial class DxRow : ObservableObject
 /// <summary>Riga della scheda "Tempo reale".</summary>
 public sealed class SpotRow
 {
-    public SpotRow(Spot s, DxRow? dx, DxccEntity? entity = null, WorkedLog? worked = null)
+    public SpotRow(Spot s, DxRow? dx, DxccEntity? entity = null, WorkedLog? worked = null, DxccEntity? spotterEntity = null)
     {
         Spot = s;
         IsDxpedition = dx is not null;
@@ -111,7 +112,20 @@ public sealed class SpotRow
         EntityLat = entity?.Latitude;
         EntityLon = entity?.Longitude;
         WorkedText = worked?.SummaryFor(s.DxCall, Entity) ?? "";
+        DxFlag = DxccInfo.Flag(entity);
+        DxCode = DxccInfo.Code(entity);
+        SpotterFlag = DxccInfo.Flag(spotterEntity);
+        SpotterCode = DxccInfo.Code(spotterEntity);
+        SpotterCountry = spotterEntity?.Name.ToUpperInvariant() ?? "";
     }
+
+    public string? DxFlag { get; }
+    public string DxCode { get; }
+    public string DxCountry => Entity.ToUpperInvariant();
+    public string? SpotterFlag { get; }
+    public string SpotterCode { get; }
+    public string SpotterCountry { get; }
+    public string TimeShort => Spot.TimeUtc.ToString("HH:mm", CultureInfo.InvariantCulture);
 
     public string WorkedText { get; }
 

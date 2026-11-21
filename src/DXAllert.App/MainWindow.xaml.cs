@@ -87,6 +87,18 @@ public partial class MainWindow : Window
         if (dialog.ShowDialog(this) == true) await _vm.ImportAdifAsync(dialog.FileName);
     }
 
+    private void QrzCall_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is string call && call.Length > 0)
+            MainViewModel.Shell($"https://www.qrz.com/db/{Uri.EscapeDataString(call)}");
+    }
+
+    private void HamQthCall_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.Tag is string call && call.Length > 0)
+            MainViewModel.Shell($"https://www.hamqth.com/{Uri.EscapeDataString(call)}");
+    }
+
     private void OpenQrz_Click(object sender, RoutedEventArgs e)
     {
         if (_vm.Qrz.HasCall) MainViewModel.Shell($"https://www.qrz.com/db/{Uri.EscapeDataString(_vm.Qrz.Call)}");
