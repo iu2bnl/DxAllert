@@ -5,23 +5,24 @@ reale (spot dal DX cluster) e quelle pianificate.
 
 ## Cosa fa
 
-- **On air**: solo le DXpedition spottate negli ultimi 15 minuti, la più recente in alto, con
-  frequenza, banda, modo, spotter e commento dell'ultimo spot. On air, Attive ora e Tempo reale
-  hanno la stessa grafica da cluster web e una colonna "QRZ" con il link alla scheda del nominativo.
+- **On Air**: gli spot del DX cluster in stile cluster web, con in alto le DXpedition on air negli
+  ultimi 15 minuti. Per ogni spot: bandiera, nominativo DX in rosso e spotter in verde, paese e
+  numero DXCC di entrambi in colonne separate, commento, "Già collegata" e, per le DXpedition,
+  giorni rimanenti, QSL, distanza, azimut e sito. Di base mostra solo gli spot delle DXpedition
+  attive; "Mostra tutti gli spot" li mostra tutti. Filtri per banda, modo e frequenza; l'imbuto
+  accanto alla banda filtra su quella banda.
 - **Attive ora**: le DXpedition in corso, con l'etichetta ON AIR per quelle spottate negli
-  ultimi 15 minuti, ultimo spot, QSL, distanza e azimut dal proprio locator.
-- **Tempo reale**: gli spot del DX cluster in stile cluster web: bandiera, nominativo DX in rosso
-  e spotter in verde, continente con numero DXCC e paese di entrambi; l'imbuto accanto alla banda
-  filtra su quella banda, le icone aprono la scheda su QRZ.com o HamQTH. Filtri per banda, modo
-  e frequenza.
+  ultimi 15 minuti, paese e DXCC, ultimo spot, QSL, distanza e azimut dal proprio locator.
+- In entrambe le schede cliccando il nominativo si apre la sua scheda su QRZ.com; le icone
+  accanto aprono QRZ.com e HamQTH.
 - **Pianificate**: calendario mensile (sei settimane da lunedì) con le DXpedition che iniziano
   in ciascun giorno, colorate per continente, e il numero di quelle attive; cliccando un giorno
   si vede a destra l'elenco completo. In alternativa la tabella, con filtri per mese,
   continente ed entità.
 - **Mappa**: tutte le operazioni sulla mappa del mondo, con confini e nomi degli stati in italiano
   (disegnati dal programma, funzionano anche senza internet); da zoom 6 in su compaiono le
-  tessere OpenStreetMap per i dettagli. Nelle schede On air, Attive ora e
-  Tempo reale una minimappa mostra il proprio QTH, la DXpedition selezionata e la linea del
+  tessere OpenStreetMap per i dettagli. Nelle schede On Air e Attive ora una minimappa mostra
+  il proprio QTH, la DXpedition selezionata e la linea del
   percorso corto (cerchio massimo) tra i due, con distanza e azimut.
 - **QRZ.com**: scheda del nominativo selezionato nel riquadro a destra, ridimensionabile.
 - **Log ADIF**: importando il proprio log, la colonna "Già collegata" indica nominativi ed
@@ -137,7 +138,7 @@ inizia a rifiutare le richieste, conviene aumentare quel valore.
 
 ## Riquadro QRZ.com
 
-Nelle schede "On air", "Attive ora" e "Tempo reale" il riquadro a destra mostra la scheda QRZ.com del
+Nelle schede "On Air" e "Attive ora" il riquadro a destra mostra la scheda QRZ.com del
 nominativo selezionato (nome, indirizzo, locator, foto, QSL manager, LoTW/eQSL, e-mail).
 Utente e password si inseriscono in Impostazioni > QRZ.com.
 
@@ -150,7 +151,7 @@ Utente e password si inseriscono in Impostazioni > QRZ.com.
 ## Log ADIF (già collegati)
 
 In Impostazioni > Log ADIF, "Importa file ADIF…" legge il file `.adi` esportato dal proprio
-programma di log. Nelle schede "Attive ora", "Tempo reale" e "Pianificate" la colonna
+programma di log. Nelle schede "On Air", "Attive ora" e "Pianificate" la colonna
 "Già collegata" mostra:
 
 - `✓ 20m FT8 · 15m CW` se quel nominativo è già nel log, con bande e modi;

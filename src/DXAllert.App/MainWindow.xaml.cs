@@ -50,7 +50,7 @@ public partial class MainWindow : Window
 
         _miniMaps = new[]
         {
-            new MiniMap(OnAirMiniMap, "WebView2MiniOnAir", () => Target(_vm.SelectedOnAir)),
+
             new MiniMap(ActiveMiniMap, "WebView2MiniActive", () => Target(_vm.SelectedActive)),
             new MiniMap(SpotMiniMap, "WebView2MiniSpot", () => _vm.SelectedSpot is { EntityLat: { } lat, EntityLon: { } lon } s
                 ? new MiniTarget(lat, lon, s.DxCall, s.Entity) : null),
@@ -59,7 +59,7 @@ public partial class MainWindow : Window
         {
             var view = args.PropertyName switch
             {
-                nameof(MainViewModel.SelectedOnAir) => OnAirMiniMap,
+
                 nameof(MainViewModel.SelectedActive) => ActiveMiniMap,
                 nameof(MainViewModel.SelectedSpot) => SpotMiniMap,
                 _ => null,
@@ -255,18 +255,26 @@ public partial class MainWindow : Window
 
     private void OpenLink_Click(object sender, RoutedEventArgs e)
     {
-        if ((sender as FrameworkElement)?.DataContext is DxRow row) MainViewModel.Shell(row.Url);
+        if (RowOf((sender as FrameworkElement)?.DataContext) is { } row) MainViewModel.Shell(row.Url);
     }
 
     private void ShowOnMap_Click(object sender, RoutedEventArgs e)
     {
-        if ((sender as FrameworkElement)?.DataContext is DxRow row) FocusOnMap(row);
+        if (RowOf((sender as FrameworkElement)?.DataContext) is { } row) FocusOnMap(row);
     }
 
     private void Grid_DoubleClick(object sender, MouseButtonEventArgs e)
     {
-        if ((e.OriginalSource as FrameworkElement)?.DataContext is DxRow row) FocusOnMap(row);
+        if (RowOf((e.OriginalSource as FrameworkElement)?.DataContext) is { } row) FocusOnMap(row);
     }
+
+    /// <summary>La DXpedition di una riga: direttamente, o quella a cui appartiene uno spot.</summary>
+    private static DxRow? RowOf(object? item) => item switch
+    {
+        DxRow row => row,
+        SpotRow spot => spot.Dx,
+        _ => null,
+    };
 
     private void DayList_DoubleClick(object sender, MouseButtonEventArgs e)
     {

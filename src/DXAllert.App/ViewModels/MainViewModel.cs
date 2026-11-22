@@ -65,6 +65,7 @@ public partial class MainViewModel : ObservableObject
     private static string Capitalize(string s) => s.Length == 0 ? s : char.ToUpper(s[0], It) + s[1..];
 
     public AppSettings Settings => _settings;
+    public string AppTitle { get; } = $"DXAllert By IU2BNL ver. {typeof(MainViewModel).Assembly.GetName().Version?.ToString(3)}";
     public bool NeedsSetup => string.IsNullOrWhiteSpace(_settings.Callsign);
 
     /// <summary>JSON da passare alla mappa.</summary>
@@ -74,7 +75,7 @@ public partial class MainViewModel : ObservableObject
     /// <summary>Nominativo o locator cambiati: le minimappe ridisegnano il QTH.</summary>
     public event Action? HomeChanged;
 
-    public ObservableCollection<DxRow> OnAir { get; } = new();
+
     public ObservableCollection<DxRow> Active { get; } = new();
     public ObservableCollection<DxRow> Planned { get; } = new();
     public ObservableCollection<SpotRow> Spots { get; } = new();
@@ -95,9 +96,9 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private int _selectedContinent;
     [ObservableProperty] private string _entityFilter = "";
     [ObservableProperty] private bool _calendarView = true;
-    [ObservableProperty] private DxRow? _selectedOnAir;
+
     [ObservableProperty] private string _onAirSummary = "";
-    [ObservableProperty] private string _onAirHeader = "On air";
+    [ObservableProperty] private string _onAirHeader = "On Air";
     [ObservableProperty] private string _activeSummary = "";
     [ObservableProperty] private string _plannedSummary = "";
 
@@ -110,7 +111,7 @@ public partial class MainViewModel : ObservableObject
 
     // Il valore null arriva anche quando le tabelle si ricostruiscono: il riquadro resta com'è.
     partial void OnSelectedActiveChanged(DxRow? value) { if (value is not null) _ = ShowQrzAsync(value.Callsign); }
-    partial void OnSelectedOnAirChanged(DxRow? value) { if (value is not null) _ = ShowQrzAsync(value.Callsign); }
+
     partial void OnSelectedSpotChanged(SpotRow? value) { if (value is not null) _ = ShowQrzAsync(value.DxCall); }
 
     private async Task ShowQrzAsync(string call, bool force = false)
@@ -205,7 +206,7 @@ public partial class MainViewModel : ObservableObject
         Rebuild();
     }
 
-    // Filtri della scheda "Tempo reale"
+    // Filtri della scheda "On Air"
     public string[] SpotBands { get; }
     public string[] SpotModes { get; }
     [ObservableProperty] private int _selectedSpotBand;
@@ -515,24 +516,14 @@ public partial class MainViewModel : ObservableObject
         RebuildOnAir();
     }
 
-    /// <summary>Scheda "On air": le attive spottate negli ultimi 15 minuti, la più recente in alto.</summary>
+    /// <summary>Titolo e riepilogo della scheda "On Air": le attive spottate negli ultimi 15 minuti.</summary>
     private void RebuildOnAir()
     {
-        var rows = Active.Where(r => r.IsOnAir).OrderByDescending(r => r.LastSpot?.TimeUtc).ToList();
-        if (!rows.SequenceEqual(OnAir))
-        {
-            var selected = SelectedOnAir?.Callsign;
-            OnAir.Clear();
-            foreach (var r in rows) OnAir.Add(r);
-            SelectedOnAir = OnAir.FirstOrDefault(r => r.Callsign == selected);
-        }
-        OnAirHeader = OnAir.Count > 0 ? $"On air ({OnAir.Count})" : "On air";
-        OnAirSummary = OnAir.Count switch
-        {
-            0 => "Nessuna DXpedition on air in questo momento. Compaiono qui appena il cluster le spotta, e restano finché arrivano spot (ultimi 15 minuti).",
-            1 => "1 DXpedition on air · spottata negli ultimi 15 minuti",
-            var n => $"{n} DXpedition on air · spottate negli ultimi 15 minuti",
-        };
+        var calls = Active.Where(r => r.IsOnAir).OrderByDescending(r => r.LastSpot?.TimeUtc).Select(r => r.Callsign).ToList();
+        OnAirHeader = calls.Count > 0 ? $"On Air ({calls.Count})" : "On Air";
+        OnAirSummary = calls.Count == 0
+            ? "Nessuna DXpedition on air in questo momento: compaiono appena il cluster le spotta."
+            : $"{calls.Count} DXpedition on air negli ultimi 15 minuti: {string.Join(", ", calls)}";
     }
 
     // ---------------------------------------------------------------- calendario delle pianificate
@@ -630,7 +621,8 @@ public partial class MainViewModel : ObservableObject
                                     Math.Abs((s.Spot.TimeUtc - spot.TimeUtc).TotalMinutes) < 3))
             return;
 
-        Spots.Insert(0, new SpotRow(spot, row, row is null ? _cty?.Resolve(spot.DxCall) : null, _worked, _cty?.Resolve(spot.Spotter)));
+        Spots.Insert(0, new SpotRow(spot, row, row is null ? _cty?.Resolve(spot.DxCall) : null, _worked, _cty?.Resolve(spot.Spotter),
+                                    Geo.LocatorToLatLon(_settings.Locator)));
         while (Spots.Count > MaxSpotRows) Spots.RemoveAt(Spots.Count - 1);
         if (row is null) return;
 

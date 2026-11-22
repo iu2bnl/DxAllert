@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
-        Title="DXAllert" Width="1280" Height="780" MinWidth="900" MinHeight="560"
+        Title="{Binding AppTitle}" Width="1280" Height="780" MinWidth="900" MinHeight="560"
         WindowStartupLocation="CenterScreen" Icon="app.ico"
         Background="{DynamicResource Bg}" Foreground="{DynamicResource Fg}" FontFamily="Segoe UI" FontSize="13"
         UseLayoutRounding="True">
@@ -22,7 +22,7 @@
             <Setter Property="Padding" Value="7,1" />
             <Setter Property="HorizontalAlignment" Value="Left" />
         </Style>
-        <!-- Tabella "Tempo reale" in stile DX cluster -->
+        <!-- Tabelle in stile DX cluster -->
         <FontFamily x:Key="SpotFont">Cascadia Mono, Consolas</FontFamily>
         <Style x:Key="CallPill" TargetType="Border">
             <Setter Property="CornerRadius" Value="4" />
@@ -34,6 +34,28 @@
             <Setter Property="Foreground" Value="White" />
             <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="FontFamily" Value="{StaticResource SpotFont}" />
+        </Style>
+        <!-- Nominativo in etichetta colorata: cliccandolo si apre la sua scheda su QRZ.com -->
+        <Style x:Key="CallPillButton" TargetType="Button">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="ToolTip" Value="Apri la scheda su QRZ.com" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="b" Background="{TemplateBinding Background}" CornerRadius="4" Padding="7,2">
+                            <TextBlock x:Name="t" Text="{TemplateBinding Content}" Style="{StaticResource PillText}" TextTrimming="CharacterEllipsis" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="t" Property="TextDecorations" Value="Underline" />
+                                <Setter TargetName="b" Property="Opacity" Value="0.85" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
         </Style>
         <Style x:Key="IconButton" TargetType="Button">
             <Setter Property="Foreground" Value="{DynamicResource Muted}" />
@@ -70,7 +92,7 @@
             <Setter Property="MinRowHeight" Value="32" />
             <Setter Property="BorderThickness" Value="0,1,0,0" />
         </Style>
-        <!-- Celle condivise da On air, Attive ora e Tempo reale (SpotRow e DxRow hanno gli stessi nomi) -->
+        <!-- Celle condivise da On Air e Attive ora (SpotRow e DxRow hanno gli stessi nomi) -->
         <DataTemplate x:Key="DxCallCell">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -81,19 +103,13 @@
                 </Grid.ColumnDefinitions>
                 <Image Source="{Binding DxFlag, TargetNullValue={x:Null}}" Width="22" Height="15" Stretch="Uniform"
                        HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="{Binding Entity}" />
-                <Border Grid.Column="1" Style="{StaticResource CallPill}" Background="#E0393E">
-                    <TextBlock Text="{Binding DxCall}" Style="{StaticResource PillText}" TextTrimming="CharacterEllipsis" />
-                </Border>
+                <Button Grid.Column="1" Style="{StaticResource CallPillButton}" Background="#E0393E" Content="{Binding DxCall}"
+                        Tag="{Binding DxCall}" Click="QrzCall_Click" />
                 <Button Grid.Column="2" Style="{StaticResource IconButton}" Content="&#xE77B;" Tag="{Binding DxCall}" Click="QrzCall_Click" ToolTip="Scheda su QRZ.com" />
                 <Button Grid.Column="3" Style="{StaticResource IconButton}" Content="&#xE774;" Tag="{Binding DxCall}" Click="HamQthCall_Click" ToolTip="Scheda su HamQTH" />
             </Grid>
         </DataTemplate>
-        <DataTemplate x:Key="DxCountryCell">
-            <DockPanel>
-                <TextBlock DockPanel.Dock="Left" Text="{Binding DxCode}" Width="66" />
-                <TextBlock Text="{Binding DxCountry}" TextTrimming="CharacterEllipsis" />
-            </DockPanel>
-        </DataTemplate>
+
         <DataTemplate x:Key="SpotterCell">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -103,16 +119,12 @@
                 </Grid.ColumnDefinitions>
                 <Image Source="{Binding SpotterFlag, TargetNullValue={x:Null}}" Width="22" Height="15" Stretch="Uniform"
                        HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="{Binding SpotterCountry}" />
-                <Border Grid.Column="1" Style="{StaticResource CallPill}" Background="#2E8B57">
-                    <TextBlock Text="{Binding Spotter}" Style="{StaticResource PillText}" TextTrimming="CharacterEllipsis" />
-                </Border>
+                <Button Grid.Column="1" Style="{StaticResource CallPillButton}" Background="#2E8B57" Content="{Binding Spotter}"
+                        Tag="{Binding Spotter}" Click="QrzCall_Click" />
                 <Button Grid.Column="2" Style="{StaticResource IconButton}" Content="&#xE77B;" Tag="{Binding Spotter}" Click="QrzCall_Click" ToolTip="Scheda dello spotter su QRZ.com" />
             </Grid>
         </DataTemplate>
-        <DataTemplate x:Key="QrzLinkCell">
-            <Button Style="{StaticResource LinkButton}" Content="Apri QRZ" Tag="{Binding DxCall}" Click="QrzCall_Click"
-                    ToolTip="{Binding DxCall, StringFormat='https://www.qrz.com/db/{0}'}" VerticalAlignment="Center" />
-        </DataTemplate>
+
 
         <!-- Pannello dei dettagli della riga selezionata -->
         <DataTemplate x:Key="DxDetails">
@@ -191,7 +203,7 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <TextBlock Text="DXAllert" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" />
+            <TextBlock Text="{Binding AppTitle}" FontSize="20" FontWeight="Bold" VerticalAlignment="Center" />
             <TextBlock Grid.Column="1" Text="{Binding SpotStatus}" Margin="20,3,0,0" VerticalAlignment="Center"
                        Foreground="{DynamicResource Muted}" TextTrimming="CharacterEllipsis" />
             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,16,0">
@@ -210,7 +222,7 @@
         </Border>
 
         <TabControl x:Name="Tabs" Grid.Row="2" Foreground="{DynamicResource Fg}">
-            <!-- ON AIR -->
+            <!-- ON AIR: tutti gli spot del cluster, con i dati delle DXpedition attive -->
             <TabItem Header="{Binding OnAirHeader}" x:Name="OnAirTab">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -219,57 +231,98 @@
                         <ColumnDefinition Width="330" MinWidth="180" MaxWidth="600" />
                     </Grid.ColumnDefinitions>
                     <DockPanel Grid.Column="0">
-                        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="16,10,16,8">
-                            <Border Style="{StaticResource OnAirPill}" VerticalAlignment="Center" Margin="0,0,10,0">
-                                <TextBlock Text="ON AIR" Foreground="White" FontWeight="Bold" FontSize="11" />
-                            </Border>
-                            <TextBlock Text="{Binding OnAirSummary}" Foreground="{DynamicResource Muted}" VerticalAlignment="Center" TextWrapping="Wrap" />
-                        </StackPanel>
-                        <ContentControl DockPanel.Dock="Bottom" Content="{Binding SelectedOnAir}" ContentTemplate="{StaticResource DxDetails}"
-                                        Focusable="False">
-                            <ContentControl.Style>
-                                <Style TargetType="ContentControl">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding SelectedOnAir}" Value="{x:Null}">
-                                            <Setter Property="Visibility" Value="Collapsed" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </ContentControl.Style>
-                        </ContentControl>
-                        <DataGrid ItemsSource="{Binding OnAir}" SelectedItem="{Binding SelectedOnAir}" Style="{StaticResource ClusterGrid}"
-                                  MouseDoubleClick="Grid_DoubleClick">
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="★" Binding="{Binding FavoriteMark}" Width="30" />
-                                <DataGridTemplateColumn Header="NOMINATIVO DX" SortMemberPath="Callsign" Width="226" CellTemplate="{StaticResource DxCallCell}" />
-                                <DataGridTemplateColumn Header="QRZ" Width="86" CellTemplate="{StaticResource QrzLinkCell}" />
-                                <DataGridTemplateColumn Header="PAESE DX" SortMemberPath="Entity" Width="250" CellTemplate="{StaticResource DxCountryCell}" />
-                                <DataGridTextColumn Header="FREQUENZA" Binding="{Binding LastSpot.FreqKhz, StringFormat={}{0:0.0}}" SortMemberPath="LastSpot.FreqKhz" Width="96" />
-                                <DataGridTextColumn Header="BANDA" Binding="{Binding LastSpot.Band}" Width="66" />
-                                <DataGridTextColumn Header="MODO" Binding="{Binding LastSpot.Mode}" Width="58" />
-                                <DataGridTemplateColumn Header="ORA UTC" SortMemberPath="LastSpot.TimeUtc" Width="70">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding LastSpot.TimeUtc, StringFormat=HH:mm}" Foreground="{DynamicResource Muted}" ToolTip="{Binding LastSpotTime}" />
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
-                                <DataGridTemplateColumn Header="SPOTTER" SortMemberPath="Spotter" Width="176" CellTemplate="{StaticResource SpotterCell}" />
-                                <DataGridTextColumn Header="COMMENTO" Binding="{Binding LastSpot.Comment}" Width="200" />
-                                <DataGridTextColumn Header="GIÀ COLLEGATA" Binding="{Binding WorkedText}" Width="150" />
-                                <DataGridTextColumn Header="RIMANGONO" Binding="{Binding DaysLeftText}" SortMemberPath="DaysLeft" Width="120" />
-                                <DataGridTextColumn Header="QSL VIA" Binding="{Binding Qsl}" Width="130" />
-                                <DataGridTextColumn Header="DISTANZA" Binding="{Binding DistanceText}" SortMemberPath="DistanceKm" Width="100" />
-                                <DataGridTextColumn Header="AZIMUT" Binding="{Binding AzimuthText}" SortMemberPath="Azimuth" Width="70" />
-                                <DataGridTemplateColumn Header="SITO" Width="70">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <Button Style="{StaticResource LinkButton}" Content="Apri" Click="OpenLink_Click" ToolTip="{Binding Url}" />
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
-                            </DataGrid.Columns>
-                        </DataGrid>
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="16,10,16,6">
+                        <Border Style="{StaticResource OnAirPill}" VerticalAlignment="Center" Margin="0,0,10,0">
+                            <TextBlock Text="ON AIR" Foreground="White" FontWeight="Bold" FontSize="11" />
+                        </Border>
+                        <TextBlock Text="{Binding OnAirSummary}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="16,2,16,8">
+                        <CheckBox Content="Mostra tutti gli spot (non solo le DXpedition attive)" IsChecked="{Binding ShowAllSpots}" />
+                        <TextBlock Text="{Binding SpotStatus}" Foreground="{DynamicResource Muted}" VerticalAlignment="Center" Margin="8,0,0,0" />
+                    </StackPanel>
+                    <!-- Filtri sugli spot -->
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="16,0,16,8">
+                        <ComboBox ItemsSource="{Binding SpotBands}" SelectedIndex="{Binding SelectedSpotBand}" Width="140" Margin="0,0,8,0" ToolTip="Filtro per banda" />
+                        <ComboBox ItemsSource="{Binding SpotModes}" SelectedIndex="{Binding SelectedSpotMode}" Width="130" Margin="0,0,8,0" ToolTip="Filtro per modo" />
+                        <TextBlock Text="Frequenza da" VerticalAlignment="Center" Margin="8,0,6,0" Foreground="{DynamicResource Muted}" />
+                        <TextBox Text="{Binding SpotFreqFrom, UpdateSourceTrigger=PropertyChanged}" Width="90" ToolTip="In kHz (es. 14000) oppure in MHz (es. 14.0)" />
+                        <TextBlock Text="a" VerticalAlignment="Center" Margin="6,0" Foreground="{DynamicResource Muted}" />
+                        <TextBox Text="{Binding SpotFreqTo, UpdateSourceTrigger=PropertyChanged}" Width="90" ToolTip="In kHz (es. 14070) oppure in MHz (es. 14.07)" />
+                        <TextBlock Text="kHz" VerticalAlignment="Center" Margin="6,0,12,0" Foreground="{DynamicResource Muted}" />
+                        <Button Content="Azzera filtri" Command="{Binding ClearSpotFiltersCommand}" />
+                        <TextBlock Text="{Binding SpotFilterMessage}" VerticalAlignment="Center" Margin="12,0,0,0" Foreground="{DynamicResource Warn}" />
+                    </StackPanel>
+                    <!-- Dettagli della DXpedition dello spot selezionato -->
+                    <ContentControl DockPanel.Dock="Bottom" Content="{Binding SelectedSpot.Dx}" ContentTemplate="{StaticResource DxDetails}" Focusable="False">
+                        <ContentControl.Style>
+                            <Style TargetType="ContentControl">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SelectedSpot.Dx}" Value="{x:Null}">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ContentControl.Style>
+                    </ContentControl>
+                    <DataGrid ItemsSource="{Binding SpotsView}" SelectedItem="{Binding SelectedSpot}" Style="{StaticResource ClusterGrid}"
+                              MouseDoubleClick="Grid_DoubleClick">
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsDxpedition}" Value="True">
+                                        <Setter Property="FontWeight" Value="Bold" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </DataGrid.RowStyle>
+                        <DataGrid.Columns>
+                            <DataGridTemplateColumn Header="ORA UTC" SortMemberPath="Spot.TimeUtc" Width="70">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding TimeShort}" Foreground="{DynamicResource Muted}" ToolTip="{Binding Time}" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="★" Binding="{Binding FavoriteMark}" Width="30" />
+                            <DataGridTemplateColumn Header="BANDA" SortMemberPath="Band" Width="82">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <DockPanel>
+                                            <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Content="&#xE71C;"
+                                                    ToolTip="Mostra solo questa banda"
+                                                    Command="{Binding DataContext.FilterBandCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
+                                                    CommandParameter="{Binding Band}" />
+                                            <TextBlock Text="{Binding Band}" VerticalAlignment="Center" />
+                                        </DockPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="FREQUENZA" Binding="{Binding Freq}" SortMemberPath="Spot.FreqKhz" Width="96" />
+                            <DataGridTemplateColumn Header="NOMINATIVO DX" SortMemberPath="DxCall" Width="226" CellTemplate="{StaticResource DxCallCell}" />
+                            <DataGridTextColumn Header="PAESE" Binding="{Binding DxCountry}" SortMemberPath="Entity" Width="210" />
+                            <DataGridTextColumn Header="DXCC" Binding="{Binding DxCode}" Width="76" />
+                            <DataGridTextColumn Header="MODO" Binding="{Binding Mode}" Width="58" />
+                            <DataGridTemplateColumn Header="SPOTTER" SortMemberPath="Spotter" Width="176" CellTemplate="{StaticResource SpotterCell}" />
+                            <DataGridTextColumn Header="PAESE SPOTTER" Binding="{Binding SpotterCountry}" Width="190" />
+                            <DataGridTextColumn Header="DXCC SPOTTER" Binding="{Binding SpotterCode}" Width="110" />
+                            <DataGridTextColumn Header="COMMENTO" Binding="{Binding Comment}" Width="230" />
+                            <DataGridTextColumn Header="GIÀ COLLEGATA" Binding="{Binding WorkedText}" Width="150" />
+                            <DataGridTextColumn Header="RIMANGONO" Binding="{Binding DaysLeftText}" SortMemberPath="DaysLeft" Width="120" />
+                            <DataGridTextColumn Header="QSL VIA" Binding="{Binding Qsl}" Width="130" />
+                            <DataGridTextColumn Header="DISTANZA" Binding="{Binding DistanceText}" SortMemberPath="DistanceKm" Width="100" />
+                            <DataGridTextColumn Header="AZIMUT" Binding="{Binding AzimuthText}" SortMemberPath="Azimuth" Width="70" />
+                            <DataGridTemplateColumn Header="SITO" Width="60">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Button Style="{StaticResource LinkButton}" Content="Apri" Click="OpenLink_Click" ToolTip="{Binding Dx.Url}"
+                                                Visibility="{Binding IsDxpedition, Converter={StaticResource BoolToVis}}" />
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="FONTE" Binding="{Binding Source}" Width="190" />
+                        </DataGrid.Columns>
+                    </DataGrid>
                     </DockPanel>
                     <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                                   ResizeBehavior="PreviousAndNext" Background="{DynamicResource Line}" Cursor="SizeWE" />
@@ -279,7 +332,7 @@
                             <RowDefinition Height="5" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
-                        <wv2:WebView2 x:Name="OnAirMiniMap" Grid.Row="0" Loaded="MiniMap_Loaded" />
+                        <wv2:WebView2 x:Name="SpotMiniMap" Grid.Row="0" Loaded="MiniMap_Loaded" />
                         <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                                       ResizeBehavior="PreviousAndNext" Background="{DynamicResource Line}" Cursor="SizeNS" />
                         <ContentControl Grid.Row="2" Content="{Binding Qrz}" ContentTemplate="{StaticResource QrzPanelTemplate}" Focusable="False" />
@@ -324,8 +377,8 @@
                             </DataGridTemplateColumn>
                             <DataGridTextColumn Header="★" Binding="{Binding FavoriteMark}" Width="30" />
                             <DataGridTemplateColumn Header="NOMINATIVO DX" SortMemberPath="Callsign" Width="226" CellTemplate="{StaticResource DxCallCell}" />
-                            <DataGridTemplateColumn Header="QRZ" Width="86" CellTemplate="{StaticResource QrzLinkCell}" />
-                            <DataGridTemplateColumn Header="PAESE DX" SortMemberPath="Entity" Width="250" CellTemplate="{StaticResource DxCountryCell}" />
+                            <DataGridTextColumn Header="PAESE" Binding="{Binding DxCountry}" SortMemberPath="Entity" Width="210" />
+                            <DataGridTextColumn Header="DXCC" Binding="{Binding DxCode}" Width="76" />
                             <DataGridTextColumn Header="GIÀ COLLEGATA" Binding="{Binding WorkedText}" Width="150" />
                             <DataGridTextColumn Header="INIZIO" Binding="{Binding StartText}" SortMemberPath="Start" Width="104" />
                             <DataGridTextColumn Header="FINE" Binding="{Binding EndText}" SortMemberPath="End" Width="104" />
@@ -356,100 +409,6 @@
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
                         <wv2:WebView2 x:Name="ActiveMiniMap" Grid.Row="0" Loaded="MiniMap_Loaded" />
-                        <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                                      ResizeBehavior="PreviousAndNext" Background="{DynamicResource Line}" Cursor="SizeNS" />
-                        <ContentControl Grid.Row="2" Content="{Binding Qrz}" ContentTemplate="{StaticResource QrzPanelTemplate}" Focusable="False" />
-                    </Grid>
-                </Grid>
-            </TabItem>
-
-            <!-- TEMPO REALE -->
-            <TabItem Header="Tempo reale">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*" />
-                        <ColumnDefinition Width="5" />
-                        <ColumnDefinition Width="330" MinWidth="180" MaxWidth="600" />
-                    </Grid.ColumnDefinitions>
-                    <DockPanel Grid.Column="0">
-                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="16,8">
-                        <CheckBox Content="Mostra tutti gli spot (non solo le DXpedition attive)" IsChecked="{Binding ShowAllSpots}" />
-                        <TextBlock Text="{Binding SpotStatus}" Foreground="{DynamicResource Muted}" VerticalAlignment="Center" Margin="8,0,0,0" />
-                    </StackPanel>
-                    <!-- Filtri sugli spot -->
-                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="16,0,16,8">
-                        <ComboBox ItemsSource="{Binding SpotBands}" SelectedIndex="{Binding SelectedSpotBand}" Width="140" Margin="0,0,8,0" ToolTip="Filtro per banda" />
-                        <ComboBox ItemsSource="{Binding SpotModes}" SelectedIndex="{Binding SelectedSpotMode}" Width="130" Margin="0,0,8,0" ToolTip="Filtro per modo" />
-                        <TextBlock Text="Frequenza da" VerticalAlignment="Center" Margin="8,0,6,0" Foreground="{DynamicResource Muted}" />
-                        <TextBox Text="{Binding SpotFreqFrom, UpdateSourceTrigger=PropertyChanged}" Width="90" ToolTip="In kHz (es. 14000) oppure in MHz (es. 14.0)" />
-                        <TextBlock Text="a" VerticalAlignment="Center" Margin="6,0" Foreground="{DynamicResource Muted}" />
-                        <TextBox Text="{Binding SpotFreqTo, UpdateSourceTrigger=PropertyChanged}" Width="90" ToolTip="In kHz (es. 14070) oppure in MHz (es. 14.07)" />
-                        <TextBlock Text="kHz" VerticalAlignment="Center" Margin="6,0,12,0" Foreground="{DynamicResource Muted}" />
-                        <Button Content="Azzera filtri" Command="{Binding ClearSpotFiltersCommand}" />
-                        <TextBlock Text="{Binding SpotFilterMessage}" VerticalAlignment="Center" Margin="12,0,0,0" Foreground="{DynamicResource Warn}" />
-                    </StackPanel>
-                    <DataGrid ItemsSource="{Binding SpotsView}" SelectedItem="{Binding SelectedSpot}" Style="{StaticResource ClusterGrid}">
-                        <DataGrid.RowStyle>
-                            <Style TargetType="DataGridRow">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsDxpedition}" Value="True">
-                                        <Setter Property="FontWeight" Value="Bold" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </DataGrid.RowStyle>
-                        <DataGrid.Columns>
-                            <DataGridTemplateColumn Header="ORA UTC" SortMemberPath="Spot.TimeUtc" Width="70">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <TextBlock Text="{Binding TimeShort}" Foreground="{DynamicResource Muted}" ToolTip="{Binding Time}" />
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                            <DataGridTemplateColumn Header="BANDA" SortMemberPath="Band" Width="82">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <DockPanel>
-                                            <Button DockPanel.Dock="Right" Style="{StaticResource IconButton}" Content="&#xE71C;"
-                                                    ToolTip="Mostra solo questa banda"
-                                                    Command="{Binding DataContext.FilterBandCommand, RelativeSource={RelativeSource AncestorType=DataGrid}}"
-                                                    CommandParameter="{Binding Band}" />
-                                            <TextBlock Text="{Binding Band}" VerticalAlignment="Center" />
-                                        </DockPanel>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="FREQUENZA" Binding="{Binding Freq}" SortMemberPath="Spot.FreqKhz" Width="96" />
-                            <DataGridTemplateColumn Header="NOMINATIVO DX" SortMemberPath="DxCall" Width="226" CellTemplate="{StaticResource DxCallCell}" />
-                            <DataGridTemplateColumn Header="QRZ" Width="86" CellTemplate="{StaticResource QrzLinkCell}" />
-                            <DataGridTemplateColumn Header="PAESE DX" SortMemberPath="Entity" Width="250" CellTemplate="{StaticResource DxCountryCell}" />
-                            <DataGridTextColumn Header="MODO" Binding="{Binding Mode}" Width="58" />
-                            <DataGridTemplateColumn Header="SPOTTER" SortMemberPath="Spotter" Width="176" CellTemplate="{StaticResource SpotterCell}" />
-                            <DataGridTemplateColumn Header="PAESE SPOTTER" SortMemberPath="SpotterCountry" Width="220">
-                                <DataGridTemplateColumn.CellTemplate>
-                                    <DataTemplate>
-                                        <DockPanel>
-                                            <TextBlock DockPanel.Dock="Left" Text="{Binding SpotterCode}" Width="66" />
-                                            <TextBlock Text="{Binding SpotterCountry}" TextTrimming="CharacterEllipsis" />
-                                        </DockPanel>
-                                    </DataTemplate>
-                                </DataGridTemplateColumn.CellTemplate>
-                            </DataGridTemplateColumn>
-                            <DataGridTextColumn Header="COMMENTO" Binding="{Binding Comment}" Width="230" />
-                            <DataGridTextColumn Header="GIÀ COLLEGATA" Binding="{Binding WorkedText}" Width="150" />
-                            <DataGridTextColumn Header="FONTE" Binding="{Binding Source}" Width="190" />
-                        </DataGrid.Columns>
-                    </DataGrid>
-                    </DockPanel>
-                    <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                                  ResizeBehavior="PreviousAndNext" Background="{DynamicResource Line}" Cursor="SizeWE" />
-                    <Grid Grid.Column="2">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="220" MinHeight="80" />
-                            <RowDefinition Height="5" />
-                            <RowDefinition Height="*" />
-                        </Grid.RowDefinitions>
-                        <wv2:WebView2 x:Name="SpotMiniMap" Grid.Row="0" Loaded="MiniMap_Loaded" />
                         <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
                                       ResizeBehavior="PreviousAndNext" Background="{DynamicResource Line}" Cursor="SizeNS" />
                         <ContentControl Grid.Row="2" Content="{Binding Qrz}" ContentTemplate="{StaticResource QrzPanelTemplate}" Focusable="False" />
@@ -803,7 +762,7 @@
 
                         <TextBlock Text="QRZ.com" Style="{StaticResource SectionTitle}" />
                         <TextBlock Foreground="{DynamicResource Muted}" Margin="0,4,0,0" TextWrapping="Wrap"
-                                   Text="Con utente e password di QRZ.com il riquadro a destra di On air, Attive ora e Tempo reale mostra la scheda del nominativo selezionato. I dati completi richiedono un abbonamento XML di QRZ; senza, arrivano solo quelli di base." />
+                                   Text="Con utente e password di QRZ.com il riquadro a destra di On Air e Attive ora mostra la scheda del nominativo selezionato. I dati completi richiedono un abbonamento XML di QRZ; senza, arrivano solo quelli di base." />
                         <StackPanel Orientation="Horizontal">
                             <StackPanel Margin="0,0,16,0">
                                 <TextBlock Text="Utente QRZ (nominativo)" Style="{StaticResource FieldLabel}" />

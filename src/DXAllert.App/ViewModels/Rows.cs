@@ -115,12 +115,14 @@ public partial class DxRow : ObservableObject
     }
 }
 
-/// <summary>Riga della scheda "Tempo reale".</summary>
+/// <summary>Riga della scheda "On Air": uno spot, con i dati della DXpedition quando è una di quelle attive.</summary>
 public sealed class SpotRow
 {
-    public SpotRow(Spot s, DxRow? dx, DxccEntity? entity = null, WorkedLog? worked = null, DxccEntity? spotterEntity = null)
+    public SpotRow(Spot s, DxRow? dx, DxccEntity? entity = null, WorkedLog? worked = null, DxccEntity? spotterEntity = null,
+                   (double Lat, double Lon)? home = null)
     {
         Spot = s;
+        Dx = dx;
         IsDxpedition = dx is not null;
         entity = dx?.Dx.Entity ?? entity;
         Entity = dx?.Entity ?? entity?.Name ?? "";
@@ -132,7 +134,23 @@ public sealed class SpotRow
         SpotterFlag = DxccInfo.Flag(spotterEntity);
         SpotterCode = DxccInfo.Code(spotterEntity);
         SpotterCountry = spotterEntity?.Name.ToUpperInvariant() ?? "";
+        if (home is { } h && entity is { } e)
+        {
+            DistanceKm = Math.Round(Geo.DistanceKm(h.Lat, h.Lon, e.Latitude, e.Longitude));
+            Azimuth = Math.Round(Geo.BearingDeg(h.Lat, h.Lon, e.Latitude, e.Longitude));
+        }
     }
+
+    /// <summary>La DXpedition attiva a cui appartiene lo spot, o null per uno spot qualsiasi.</summary>
+    public DxRow? Dx { get; }
+    public string FavoriteMark => Dx?.FavoriteMark ?? "";
+    public string DaysLeftText => Dx?.DaysLeftText ?? "";
+    public int? DaysLeft => Dx?.DaysLeft;
+    public string Qsl => Dx?.Qsl ?? "";
+    public double? DistanceKm { get; }
+    public double? Azimuth { get; }
+    public string DistanceText => DistanceKm is { } d ? $"{d:0} km" : "";
+    public string AzimuthText => Azimuth is { } a ? $"{a:0}°" : "";
 
     public string? DxFlag { get; }
     public string DxCode { get; }
