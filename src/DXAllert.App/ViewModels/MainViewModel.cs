@@ -187,7 +187,11 @@ public partial class MainViewModel : ObservableObject
             }
             await Task.Run(() => _repo.ReplaceWorkedLog(entries));
             await LoadWorkedLogAsync();
-            Log.Info($"Log ADIF importato: {entries.Count} QSO");
+            var withCounty = entries.Count(e => e.County.Length > 0);
+            if (withCounty == 0)
+                WorkedStats += " Attenzione: nel file manca il campo CNTY (contea), quindi la mappa Contee USA resterà vuota. " +
+                               "Esporta il log includendo i campi STATE e CNTY e reimportalo.";
+            Log.Info($"Log ADIF importato: {entries.Count} QSO, {withCounty} con la contea");
             Rebuild();
         }
         catch (Exception ex)
@@ -346,6 +350,7 @@ public partial class MainViewModel : ObservableObject
         {
             dark = _settings.DarkTheme,
             logLoaded = _workedEntries.Count > 0,
+            anyCounty = _workedEntries.Any(e => e.County.Length > 0),
             usQsos = us.Count,
             usNoCounty = us.Count(e => e.County.Length == 0 || e.State.Length != 2),
             counties,

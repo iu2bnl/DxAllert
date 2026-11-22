@@ -5,7 +5,7 @@
 #define AppName "DXAllert"
 ; build.ps1 passa la versione letta da DXAllert.App.csproj (/DAppVersion=...).
 #ifndef AppVersion
-  #define AppVersion "1.1.0"
+  #define AppVersion "1.1.1"
 #endif
 #define AppExe "dxallert.exe"
 

@@ -191,6 +191,9 @@
     let h = '<h1>Contee USA</h1><div class="muted">Diploma USA-CA di MARAC (marac.org)</div>';
     if (!data.logLoaded) {
       h += '<p class="warn">Nessun log importato. Importa il tuo file ADIF in Impostazioni &gt; Log ADIF.</p>';
+    } else if (!data.anyCounty) {
+      h += '<p class="warn">Il file ADIF importato non contiene le contee: nessun QSO ha il campo CNTY (né STATE). ' +
+           'Esporta di nuovo il log dal tuo programma includendo i campi STATE e CNTY (in Log4OM: tutti i campi) e reimportalo.</p>';
     }
     h += '<div class="total"><b>' + done + '</b> <span class="muted">su ' + all + ' contee · ' + pct.toFixed(1).replace('.', ',') + '%</span></div>' +
          '<div class="bar"><i style="width:' + pct + '%"></i></div>' +
