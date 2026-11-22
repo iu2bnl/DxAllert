@@ -24,6 +24,9 @@ reale (spot dal DX cluster) e quelle pianificate.
   tessere OpenStreetMap per i dettagli. Nelle schede On Air e Attive ora una minimappa mostra
   il proprio QTH, la DXpedition selezionata e la linea del
   percorso corto (cerchio massimo) tra i due, con distanza e azimut.
+- **Contee USA**: mappa delle contee degli Stati Uniti lavorate secondo il log ADIF importato, per
+  il diploma USA-CA di MARAC (marac.org): totale, prossima classe (USA 500, 1000, …, 3077),
+  avanzamento per stato, contee del log non riconosciute e città indipendenti.
 - **QRZ.com**: scheda del nominativo selezionato nel riquadro a destra, ridimensionabile.
 - **Log ADIF**: importando il proprio log, la colonna "Già collegata" indica nominativi ed
   entità DXCC già fatti, con banda e modo.
@@ -127,6 +130,7 @@ La disinstallazione non cancella questa cartella.
 | K0SWE dxcc-json | `Assets\dxcc.csv` (ricavato una volta) | paese di ciascuna entità, per la bandiera; licenza Apache 2.0 in `Assets\licenses` |
 | flagcdn.com | `Assets\flags` | bandiere (pubblico dominio) |
 | Natural Earth | `Assets\map\countries.js` (ricavato una volta, 1:50m) | confini e nomi italiani degli stati sulla mappa (pubblico dominio) |
+| us-atlas (US Census Bureau) | `Assets\map\us-counties.js` | confini delle contee USA (licenza ISC) |
 
 Escluse: **DXMaps** (i termini d'uso vietano l'uso dei dati in programmi) e **DXNews**
 (il dominio non risultava raggiungibile; il modulo `DxNewsSource` è pronto ma spento).
@@ -162,6 +166,30 @@ Ogni importazione sostituisce la precedente; "Cancella il log importato" la rimu
 L'entità DXCC di ogni QSO è ricavata dal nominativo con `cty.dat`, non dal nome scritto nel
 file. Se nel QSO manca la banda si usa la frequenza; il sottomodo (per esempio FT4) ha la
 precedenza sul modo. Modulo `src\DXAllert.Core\AdifParser.cs`.
+
+## Contee USA (MARAC USA-CA)
+
+La scheda legge dal log importato i campi `STATE` e `CNTY` dei QSO con Stati Uniti, Alaska e
+Hawaii (`CNTY` nel formato ADIF `MA,Middlesex`; vanno bene anche `MA, Middlesex` o solo
+`Middlesex` con lo stato in `STATE`). Se il log è stato importato prima della versione 1.0.9 va
+importato di nuovo, perché allora stato e contea non venivano salvati.
+
+Le contee seguono le regole USA-CA (revisione aprile 2025): le contee dei 48 stati, le parrocchie
+della Louisiana, i 4 distretti giudiziari dell'Alaska e le contee storiche del Connecticut. Le
+città indipendenti (Virginia, Baltimore City, St. Louis City) non sono contee: compaiono a parte,
+perché le regole permettono di dichiarare una contea adiacente. Washington DC e i territori non
+fanno parte del diploma.
+
+- Confini: us-atlas 3.0.1 (dati US Census Bureau, licenza ISC), libreria topojson-client (ISC);
+  licenze in `Assets\licenses`.
+- In Alaska ogni borough è assegnato al suo distretto giudiziario: i confini dei distretti seguono
+  quasi sempre quelli dei borough, ma non in ogni dettaglio.
+- Con queste regole le contee sono 3076, una in meno del 3077 che dà il nome al diploma: le
+  regole pubblicate non dicono quale caso particolare MARAC conta in più.
+- I nomi del log sono confrontati ignorando maiuscole, accenti, spazi, punteggiatura e parole come
+  "County" o "Parish" ("Saint" vale "St."); alcuni vecchi nomi sono riconosciuti (Dade →
+  Miami-Dade, Shannon → Oglala Lakota). Le voci che non corrispondono a nessuna contea sono
+  elencate nella scheda.
 
 ## Struttura del progetto
 

@@ -3,7 +3,7 @@
 ; Risultato: ..\dist\DXAllert-Setup.exe
 
 #define AppName "DXAllert"
-#define AppVersion "1.0.8"
+#define AppVersion "1.0.9"
 #define AppExe "dxallert.exe"
 
 [Setup]

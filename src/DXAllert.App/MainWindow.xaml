@@ -708,6 +708,15 @@
                 </DockPanel>
             </TabItem>
 
+            <!-- CONTEE USA (diploma MARAC USA-CA) dal log ADIF -->
+            <TabItem Header="Contee USA">
+                <Grid>
+                    <TextBlock x:Name="CountyMessage" Text="Caricamento della mappa…" HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Foreground="{DynamicResource Muted}" TextWrapping="Wrap" MaxWidth="520" TextAlignment="Center" />
+                    <wv2:WebView2 x:Name="CountyMap" Loaded="CountyMap_Loaded" />
+                </Grid>
+            </TabItem>
+
             <!-- MAPPA -->
             <TabItem Header="Mappa" x:Name="MapTab">
                 <Grid>
@@ -779,7 +788,7 @@
 
                         <TextBlock Text="Log ADIF (già collegati)" Style="{StaticResource SectionTitle}" />
                         <TextBlock Foreground="{DynamicResource Muted}" Margin="0,4,0,0" TextWrapping="Wrap"
-                                   Text="Importa il file ADIF esportato dal tuo programma di log: la colonna «Già collegata» mostra ✓ con bande e modi se hai già collegato quel nominativo, ~ se hai collegato solo la sua entità DXCC, vuoto se è nuova. Ogni importazione sostituisce la precedente." />
+                                   Text="Importa il file ADIF esportato dal tuo programma di log: la colonna «Già collegata» mostra ✓ con bande e modi se hai già collegato quel nominativo, ~ se hai collegato solo la sua entità DXCC, vuoto se è nuova. La scheda Contee USA usa anche lo stato e la contea (campi STATE e CNTY): se hai importato il log con una versione precedente alla 1.0.9, importalo di nuovo. Ogni importazione sostituisce la precedente." />
                         <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
                             <Button Content="Importa file ADIF…" Click="ImportAdif_Click" Margin="0,0,8,0" />
                             <Button Content="Cancella il log importato" Command="{Binding ClearWorkedCommand}" />

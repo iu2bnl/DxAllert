@@ -45,6 +45,7 @@ public partial class MainViewModel : ObservableObject
     private DxSummitSpotSource? _web;
     private readonly QrzClient _qrz;
     private WorkedLog? _worked;
+    private List<WorkedEntry> _workedEntries = new();
 
     public MainViewModel()
     {
@@ -162,13 +163,12 @@ public partial class MainViewModel : ObservableObject
     private async Task LoadWorkedLogAsync()
     {
         var cty = _cty;
-        var log = await Task.Run(() =>
-        {
-            var entries = _repo.GetWorkedLog();
-            return entries.Count == 0 ? null
-                : new WorkedLog(entries.Select(e => e with { DxccName = cty?.Resolve(e.Callsign)?.Name ?? e.DxccName }));
-        });
+        var entries = await Task.Run(() => _repo.GetWorkedLog()
+            .Select(e => e with { DxccName = cty?.Resolve(e.Callsign)?.Name ?? e.DxccName }).ToList());
+        var log = entries.Count == 0 ? null : new WorkedLog(entries);
+        _workedEntries = entries;
         _worked = log;
+        CountyDataChanged?.Invoke();
         WorkedStats = log is null
             ? "Nessun log importato."
             : $"Log importato: {log.Count} QSO · {log.UniqueCallsigns} nominativi · {log.UniqueEntities} entità DXCC.";
@@ -202,9 +202,45 @@ public partial class MainViewModel : ObservableObject
     {
         await Task.Run(() => _repo.ClearWorkedLog());
         _worked = null;
+        _workedEntries = new();
+        CountyDataChanged?.Invoke();
         WorkedStats = "Nessun log importato.";
         Rebuild();
     }
+
+    // ---------------------------------------------------------------- contee USA (diploma MARAC USA-CA)
+
+    /// <summary>Il log è cambiato: la mappa delle contee va ridisegnata.</summary>
+    public event Action? CountyDataChanged;
+
+    private static readonly HashSet<string> UsEntities = new(StringComparer.OrdinalIgnoreCase) { "United States", "Alaska", "Hawaii" };
+
+    /// <summary>Contee lavorate (stato, contea come scritta nel log, QSO, bande, modi, nominativi) per counties.html.</summary>
+    public string BuildCountyJson()
+    {
+        var us = _workedEntries.Where(e => UsEntities.Contains(e.DxccName)).ToList();
+        var counties = us.Where(e => e.County.Length > 0 && e.State.Length == 2)
+            .GroupBy(e => (e.State.ToUpperInvariant(), e.County.ToUpperInvariant()))
+            .Select(g => new
+            {
+                st = g.Key.Item1,
+                name = g.First().County,
+                qsos = g.Count(),
+                bands = string.Join(" ", g.Select(e => e.Band).Distinct().OrderBy(BandOrder)),
+                modes = string.Join(" ", g.Select(e => e.Mode).Distinct().OrderBy(m => m)),
+                calls = string.Join(", ", g.Select(e => e.Callsign).Distinct().Take(6)),
+            });
+        return JsonSerializer.Serialize(new
+        {
+            dark = _settings.DarkTheme,
+            logLoaded = _workedEntries.Count > 0,
+            usQsos = us.Count,
+            usNoCounty = us.Count(e => e.County.Length == 0 || e.State.Length != 2),
+            counties,
+        });
+    }
+
+    private static int BandOrder(string band) => Array.IndexOf(BandPlan.AllBands, band) is var i and >= 0 ? i : 99;
 
     // Filtri della scheda "On Air"
     public string[] SpotBands { get; }

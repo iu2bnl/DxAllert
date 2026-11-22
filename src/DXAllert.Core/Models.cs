@@ -69,7 +69,8 @@ public sealed class AppSettings
 }
 
 /// <summary>Un QSO del log personale, importato da file ADIF.</summary>
-public sealed record WorkedEntry(string Callsign, string Band, string Mode, string DxccName);
+/// <summary>Un QSO del log ADIF. Per gli Stati Uniti anche stato (STATE) e contea (CNTY, senza lo stato).</summary>
+public sealed record WorkedEntry(string Callsign, string Band, string Mode, string DxccName, string State = "", string County = "");
 
 public interface IDxpeditionSource
 {

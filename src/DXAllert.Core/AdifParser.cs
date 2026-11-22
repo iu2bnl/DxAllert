@@ -44,7 +44,17 @@ public static class AdifParser
             var country = fields.GetValueOrDefault("COUNTRY",
                           fields.GetValueOrDefault("DXCC_ENTITY_NAME", ""));
 
-            results.Add(new WorkedEntry(call, band, mode, country));
+            // CNTY: "MA,Middlesex" (formato ADIF), a volte "MA, Middlesex" o solo "Middlesex" con lo stato in STATE.
+            var state = fields.GetValueOrDefault("STATE", "").ToUpperInvariant();
+            var county = fields.GetValueOrDefault("CNTY", "");
+            var comma = county.IndexOf(',');
+            if (comma >= 0)
+            {
+                if (state.Length == 0) state = county[..comma].Trim().ToUpperInvariant();
+                county = county[(comma + 1)..].Trim();
+            }
+
+            results.Add(new WorkedEntry(call, band, mode, country, state, county));
         }
         return results;
     }

@@ -61,6 +61,22 @@ public sealed class Repository
                 id INTEGER PRIMARY KEY,
                 callsign TEXT NOT NULL, band TEXT NOT NULL, mode TEXT NOT NULL, dxcc_name TEXT NOT NULL);
             """);
+        AddColumnIfMissing("worked_log", "state", "TEXT NOT NULL DEFAULT ''");
+        AddColumnIfMissing("worked_log", "county", "TEXT NOT NULL DEFAULT ''");
+    }
+
+    /// <summary>Aggiorna i database creati da versioni precedenti.</summary>
+    private void AddColumnIfMissing(string table, string column, string definition)
+    {
+        lock (_gate)
+        {
+            using var c = Open();
+            using var cmd = c.CreateCommand();
+            cmd.CommandText = $"SELECT COUNT(*) FROM pragma_table_info('{table}') WHERE name = '{column}'";
+            if (Convert.ToInt32(cmd.ExecuteScalar()) > 0) return;
+            cmd.CommandText = $"ALTER TABLE {table} ADD COLUMN {column} {definition}";
+            cmd.ExecuteNonQuery();
+        }
     }
 
     private SqliteConnection Open()
@@ -169,7 +185,7 @@ public sealed class Repository
             del.CommandText = "DELETE FROM worked_log";
             del.ExecuteNonQuery();
             using var ins = c.CreateCommand();
-            ins.CommandText = "INSERT INTO worked_log(callsign,band,mode,dxcc_name) VALUES($c,$b,$m,$e)";
+            ins.CommandText = "INSERT INTO worked_log(callsign,band,mode,dxcc_name,state,county) VALUES($c,$b,$m,$e,$s,$n)";
             foreach (var e in entries)
             {
                 ins.Parameters.Clear();
@@ -177,6 +193,8 @@ public sealed class Repository
                 ins.Parameters.AddWithValue("$b", e.Band);
                 ins.Parameters.AddWithValue("$m", e.Mode);
                 ins.Parameters.AddWithValue("$e", e.DxccName);
+                ins.Parameters.AddWithValue("$s", e.State);
+                ins.Parameters.AddWithValue("$n", e.County);
                 ins.ExecuteNonQuery();
             }
             t.Commit();
@@ -190,10 +208,10 @@ public sealed class Repository
         {
             using var c = Open();
             using var cmd = c.CreateCommand();
-            cmd.CommandText = "SELECT callsign, band, mode, dxcc_name FROM worked_log";
+            cmd.CommandText = "SELECT callsign, band, mode, dxcc_name, state, county FROM worked_log";
             using var r = cmd.ExecuteReader();
             while (r.Read())
-                list.Add(new WorkedEntry(r.GetString(0), r.GetString(1), r.GetString(2), r.GetString(3)));
+                list.Add(new WorkedEntry(r.GetString(0), r.GetString(1), r.GetString(2), r.GetString(3), r.GetString(4), r.GetString(5)));
         }
         return list;
     }

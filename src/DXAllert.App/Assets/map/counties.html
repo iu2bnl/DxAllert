@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>DXAllert – Contee USA</title>
+<link rel="stylesheet" href="leaflet.css">
+<style>
+  :root { --sea: #a9cfe0; --land: #f4f1ea; --none: #ebe6db; --cborder: #c9c1b3; --sborder: #6f665b; --done: #2e9e5b;
+          --city: #cfc8bb; --panel: #ffffff; --fg: #1f2328; --muted: #5f6b76; --line: #dde2e7; --accent: #1f6feb; --warn: #b45309; }
+  body.dark { --sea: #0f1b26; --land: #222a33; --none: #2c3640; --cborder: #3c4753; --sborder: #9aa7b5; --done: #2fae66;
+              --city: #444d58; --panel: #1e242b; --fg: #e6e9ee; --muted: #9aa5b1; --line: #37414d; --accent: #4ea1f3; --warn: #f0b45a; }
+  html, body { margin: 0; height: 100%; font: 13px "Segoe UI", sans-serif; color: var(--fg); background: var(--panel); }
+  #wrap { display: flex; height: 100%; }
+  #map { flex: 1; background: var(--sea); }
+  #side { width: 310px; overflow-y: auto; border-left: 1px solid var(--line); padding: 14px 16px; box-sizing: border-box; }
+  h1 { font-size: 17px; margin: 0; }
+  h2 { font-size: 13px; margin: 18px 0 6px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); }
+  .muted { color: var(--muted); }
+  .total { margin-top: 12px; }
+  .total b { font-size: 30px; }
+  .bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; margin: 6px 0 4px; }
+  .bar > i { display: block; height: 100%; background: var(--done); }
+  .legend div { margin: 3px 0; }
+  .legend i { display: inline-block; width: 13px; height: 13px; border-radius: 2px; margin-right: 7px; vertical-align: -2px; border: 1px solid var(--cborder); }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  td { padding: 3px 4px; border-bottom: 1px solid var(--line); }
+  td.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  tr.st { cursor: pointer; }
+  tr.st:hover td { background: var(--line); }
+  tr.full td:first-child { color: var(--done); font-weight: 600; }
+  .mini { display: inline-block; width: 46px; height: 5px; background: var(--line); border-radius: 3px; overflow: hidden; vertical-align: middle; margin-left: 6px; }
+  .mini > i { display: block; height: 100%; background: var(--done); }
+  .warn { color: var(--warn); }
+  ul { margin: 4px 0; padding-left: 18px; }
+  .note { font-size: 11px; margin-top: 16px; }
+  .leaflet-tooltip { font: 12px "Segoe UI", sans-serif; }
+</style>
+<script src="leaflet.js"></script>
+<script src="topojson-client.min.js"></script>
+<script src="us-counties.js"></script>
+<script src="countries.js"></script>
+</head>
+<body>
+<div id="wrap">
+  <div id="map"></div>
+  <div id="side"><h1>Contee USA</h1><p class="muted">Caricamento…</p></div>
+</div>
+<script>
+  // Regole MARAC USA-CA (aprile 2025): contee dei 48 stati, parrocchie della Louisiana, i 4 distretti
+  // giudiziari dell'Alaska, le contee storiche del Connecticut. Le città indipendenti non sono contee.
+  const FIPS = { '01': 'AL', '02': 'AK', '04': 'AZ', '05': 'AR', '06': 'CA', '08': 'CO', '09': 'CT', '10': 'DE', '12': 'FL', '13': 'GA',
+    '15': 'HI', '16': 'ID', '17': 'IL', '18': 'IN', '19': 'IA', '20': 'KS', '21': 'KY', '22': 'LA', '23': 'ME', '24': 'MD', '25': 'MA',
+    '26': 'MI', '27': 'MN', '28': 'MS', '29': 'MO', '30': 'MT', '31': 'NE', '32': 'NV', '33': 'NH', '34': 'NJ', '35': 'NM', '36': 'NY',
+    '37': 'NC', '38': 'ND', '39': 'OH', '40': 'OK', '41': 'OR', '42': 'PA', '44': 'RI', '45': 'SC', '46': 'SD', '47': 'TN', '48': 'TX',
+    '49': 'UT', '50': 'VT', '51': 'VA', '53': 'WA', '54': 'WV', '55': 'WI', '56': 'WY' };
+  const STATE_NAME = { AL: 'Alabama', AK: 'Alaska', AZ: 'Arizona', AR: 'Arkansas', CA: 'California', CO: 'Colorado', CT: 'Connecticut',
+    DE: 'Delaware', FL: 'Florida', GA: 'Georgia', HI: 'Hawaii', ID: 'Idaho', IL: 'Illinois', IN: 'Indiana', IA: 'Iowa', KS: 'Kansas',
+    KY: 'Kentucky', LA: 'Louisiana', ME: 'Maine', MD: 'Maryland', MA: 'Massachusetts', MI: 'Michigan', MN: 'Minnesota', MS: 'Mississippi',
+    MO: 'Missouri', MT: 'Montana', NE: 'Nebraska', NV: 'Nevada', NH: 'New Hampshire', NJ: 'New Jersey', NM: 'New Mexico', NY: 'New York',
+    NC: 'North Carolina', ND: 'North Dakota', OH: 'Ohio', OK: 'Oklahoma', OR: 'Oregon', PA: 'Pennsylvania', RI: 'Rhode Island',
+    SC: 'South Carolina', SD: 'South Dakota', TN: 'Tennessee', TX: 'Texas', UT: 'Utah', VT: 'Vermont', VA: 'Virginia', WA: 'Washington',
+    WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming' };
+  // Borough e census area dell'Alaska -> distretto giudiziario (i confini dei distretti seguono quasi sempre quelli dei borough).
+  const AK_DISTRICT = { '02100': 1, '02105': 1, '02110': 1, '02130': 1, '02195': 1, '02198': 1, '02220': 1, '02230': 1, '02275': 1, '02282': 1,
+    '02180': 2, '02185': 2, '02188': 2,
+    '02013': 3, '02016': 3, '02020': 3, '02060': 3, '02070': 3, '02122': 3, '02150': 3, '02164': 3, '02170': 3, '02261': 3,
+    '02050': 4, '02068': 4, '02090': 4, '02158': 4, '02240': 4, '02290': 4 };
+  const AK_NAME = ['', 'First Judicial District', 'Second Judicial District', 'Third Judicial District', 'Fourth Judicial District'];
+  const CLASSES = [500, 1000, 1500, 2000, 2500, 3000, 3077];
+  const ALIAS = { 'FL|dade': 'FL|miamidade', 'SD|shannon': 'SD|oglalalakota', 'AK|wadehampton': 'AK|kusilvak' };
+
+  const isCity = id => id === '24510' || id === '29510' || (id.startsWith('51') && +id.slice(2) >= 510);
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  function norm(s) {
+    return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+      .replace(/\bsainte\b/g, 'ste').replace(/\bsaint\b/g, 'st')
+      .replace(/\b(county|parish|borough|census area|city and borough|municipality)\b/g, '')
+      .replace(/[^a-z0-9]/g, '');
+  }
+  function akDistrict(n) {
+    const m = n.match(/^(?:(first|1st|1)|(second|2nd|2)|(third|3rd|3)|(fourth|4th|4))(?:judicialdistrict|judicial|district|jd)?$/)
+           || n.match(/^(?:jd|judicialdistrict|district)(?:(1)|(2)|(3)|(4))$/);
+    if (!m || !/judicial|district|jd|st$|nd$|rd$|th$|^first|^second|^third|^fourth/.test(n)) return 0;
+    return m[1] ? 1 : m[2] ? 2 : m[3] ? 3 : 4;
+  }
+
+  // ---- unità del diploma: una per contea (per l'Alaska una per distretto)
+  const topo = window.US_COUNTIES;
+  const features = topojson.feature(topo, topo.objects.counties).features;
+  const units = new Map(), unitOf = new Map(), akBorough = new Map();
+  for (const f of features) {
+    const id = String(f.id), st = FIPS[id.slice(0, 2)];
+    if (!st) continue; // territori e Washington DC: non fanno parte del diploma
+    let key, name, city = false;
+    if (st === 'AK') {
+      const d = AK_DISTRICT[id];
+      if (!d) continue;
+      key = 'AK|jd' + d; name = AK_NAME[d];
+      akBorough.set('AK|' + norm(f.properties.name), key);
+    } else if (isCity(id)) {
+      city = true; key = st + '|' + norm(f.properties.name) + 'city'; name = f.properties.name + ' (città indipendente)';
+    } else {
+      key = st + '|' + norm(f.properties.name); name = f.properties.name;
+    }
+    let u = units.get(key);
+    if (!u) units.set(key, u = { key, st, name, city, features: [], worked: null });
+    u.features.push(f);
+    unitOf.set(f, u);
+  }
+  const countable = [...units.values()].filter(u => !u.city);
+  const totals = {};
+  for (const u of countable) totals[u.st] = (totals[u.st] || 0) + 1;
+
+  function findUnit(st, raw) {
+    const n = norm(raw);
+    let k = ALIAS[st + '|' + n] || st + '|' + n;
+    if (st === 'AK') {
+      const d = akDistrict(n);
+      if (d) return units.get('AK|jd' + d);
+      return units.get(akBorough.get(k)) || null;
+    }
+    return units.get(k) || units.get(k + 'city') || (n.endsWith('city') && units.get(k.slice(0, -4) + 'city')) || null;
+  }
+
+  // ---- mappa
+  const map = L.map('map', { minZoom: 2, maxZoom: 10, zoomSnap: 0.25, attributionControl: true }).fitBounds([[24, -125], [50, -66]]);
+  map.attributionControl.setPrefix(false).addAttribution('Contee: US Census Bureau (us-atlas) · Stati: Natural Earth');
+  const canvas = L.canvas({ padding: 0.5 });
+  const world = L.geoJSON({ type: 'FeatureCollection', features: (window.NE_COUNTRIES || []).map(c => ({ type: 'Feature', properties: {}, geometry: c.g })) },
+    { renderer: canvas, interactive: false, style: () => ({ weight: 0.6, color: 'var(--cborder)', fillOpacity: 1 }) }).addTo(map);
+
+  const css = n => getComputedStyle(document.body).getPropertyValue(n).trim();
+  const countyLayer = L.geoJSON({ type: 'FeatureCollection', features: [...units.values()].flatMap(u => u.features) }, {
+    renderer: canvas,
+    style: () => ({}),
+    onEachFeature: (f, layer) => layer.bindTooltip(() => tip(unitOf.get(f), f), { sticky: true })
+  }).addTo(map);
+  const stateLines = L.geoJSON(topojson.mesh(topo, topo.objects.states, (a, b) => a !== b), { renderer: canvas, interactive: false }).addTo(map);
+
+  function tip(u, f) {
+    const head = '<b>' + esc(u.name) + '</b>, ' + esc(u.st) + (u.st === 'AK' ? '<br><span style="opacity:.75">' + esc(f.properties.name) + '</span>' : '');
+    if (u.city) return head + '<br>Non conta per il diploma: vale una contea adiacente, a tua scelta.';
+    if (!u.worked) return head + '<br>Non ancora lavorata';
+    const w = u.worked;
+    return head + '<br><b style="color:' + css('--done') + '">Lavorata</b> · ' + w.qsos + ' QSO<br>' + esc([...w.bands].join(' ')) +
+           ' · ' + esc([...w.modes].join(' ')) + '<br>' + esc([...w.calls].slice(0, 6).join(', '));
+  }
+
+  function restyle() {
+    world.setStyle({ weight: 0.6, color: css('--cborder'), fillColor: css('--land'), fillOpacity: 1 });
+    countyLayer.setStyle(f => {
+      const u = unitOf.get(f);
+      return { weight: 0.4, color: css('--cborder'), fillOpacity: 1,
+               fillColor: u.city ? css('--city') : u.worked ? css('--done') : css('--none'),
+               dashArray: null };
+    });
+    stateLines.setStyle({ weight: 1.2, color: css('--sborder'), opacity: 0.9 });
+  }
+
+  function zoomToState(st) {
+    const b = L.latLngBounds([]);
+    for (const u of units.values()) if (u.st === st) for (const f of u.features) b.extend(L.geoJSON(f).getBounds());
+    if (b.isValid()) map.fitBounds(b, { padding: [20, 20] });
+  }
+
+  // ---- dati dal programma
+  window.countyUpdate = function (data) {
+    document.body.classList.toggle('dark', !!data.dark);
+    for (const u of units.values()) u.worked = null;
+    const unknown = [], cities = [];
+    for (const c of data.counties || []) {
+      const u = findUnit(c.st, c.name);
+      if (!u) { unknown.push(c); continue; }
+      if (u.city) { cities.push(c); continue; }
+      const w = u.worked || (u.worked = { qsos: 0, bands: new Set(), modes: new Set(), calls: new Set() });
+      w.qsos += c.qsos;
+      c.bands.split(' ').filter(Boolean).forEach(b => w.bands.add(b));
+      c.modes.split(' ').filter(Boolean).forEach(m => w.modes.add(m));
+      c.calls.split(', ').filter(Boolean).forEach(x => w.calls.add(x));
+    }
+    restyle();
+    renderSide(data, unknown, cities);
+  };
+
+  function renderSide(data, unknown, cities) {
+    const done = countable.filter(u => u.worked).length, all = countable.length;
+    const pct = all ? (100 * done / all) : 0;
+    const next = CLASSES.find(c => c > done);
+    const perState = {};
+    for (const u of countable) if (u.worked) perState[u.st] = (perState[u.st] || 0) + 1;
+    let h = '<h1>Contee USA</h1><div class="muted">Diploma USA-CA di MARAC (marac.org)</div>';
+    if (!data.logLoaded) {
+      h += '<p class="warn">Nessun log importato. Importa il tuo file ADIF in Impostazioni &gt; Log ADIF.</p>';
+    }
+    h += '<div class="total"><b>' + done + '</b> <span class="muted">su ' + all + ' contee · ' + pct.toFixed(1).replace('.', ',') + '%</span></div>' +
+         '<div class="bar"><i style="width:' + pct + '%"></i></div>' +
+         '<div>' + (next ? 'Prossima classe: <b>USA ' + (next === 3077 ? '3077 (tutte)' : next) + '</b> · ne mancano ' + ((next === 3077 ? all : next) - done)
+                         : '<b>Tutte le contee lavorate!</b>') + '</div>';
+    h += '<div class="legend" style="margin-top:12px">' +
+         '<div><i style="background:' + css('--done') + '"></i>Lavorata</div>' +
+         '<div><i style="background:' + css('--none') + '"></i>Da lavorare</div>' +
+         '<div><i style="background:' + css('--city') + '"></i>Città indipendente (non conta)</div></div>';
+    if (data.logLoaded) {
+      h += '<p class="muted">Nel log: ' + data.usQsos + ' QSO con gli USA' +
+           (data.usNoCounty ? '; <span class="warn">' + data.usNoCounty + ' senza contea</span> (campo CNTY vuoto), non conteggiati' : '') + '.</p>';
+    }
+    if (unknown.length) {
+      h += '<h2>Contee del log non riconosciute</h2><ul>' + unknown.map(c => '<li>' + esc(c.st) + ', ' + esc(c.name) + '</li>').join('') + '</ul>';
+    }
+    if (cities.length) {
+      h += '<h2>Città indipendenti nel log</h2><div class="muted">Non sono contee: secondo le regole puoi dichiarare una contea adiacente.</div><ul>' +
+           cities.map(c => '<li>' + esc(c.st) + ', ' + esc(c.name) + '</li>').join('') + '</ul>';
+    }
+    h += '<h2>Per stato</h2><table>' + Object.keys(totals).sort((a, b) => STATE_NAME[a].localeCompare(STATE_NAME[b])).map(st => {
+      const d = perState[st] || 0, t = totals[st];
+      return '<tr class="st' + (d === t ? ' full' : '') + '" data-st="' + st + '"><td>' + esc(STATE_NAME[st]) + '</td><td class="n">' + d + ' / ' + t +
+             '<span class="mini"><i style="width:' + (100 * d / t) + '%"></i></span></td></tr>';
+    }).join('') + '</table>';
+    h += '<p class="note muted">Il diploma più alto si chiama USA 3077. Qui le contee sono ' + all + ', contate secondo le regole pubblicate ' +
+         '(4 distretti in Alaska, contee storiche del Connecticut, città indipendenti escluse): i confini sono quelli del Census USA.</p>';
+    const side = document.getElementById('side');
+    side.innerHTML = h;
+    side.querySelectorAll('tr.st').forEach(tr => tr.addEventListener('click', () => zoomToState(tr.dataset.st)));
+  }
+
+  restyle();
+  renderSide({ logLoaded: false, counties: [] }, [], []);
+</script>
+</body>
+</html>

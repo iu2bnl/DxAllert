@@ -46,11 +46,12 @@ public partial class MainWindow : Window
         DataContext = vm;
         vm.MapDataChanged += json => { if (_mapReady) _ = RunMapScript($"dxUpdate({json})"); };
         vm.QrzPasswordSaved += () => QrzPassword.Clear();
+        vm.CountyDataChanged += () => Dispatcher.BeginInvoke(PushCounties);
+        vm.ThemeChanged += _ => PushCounties();
         if (vm.NeedsSetup) Tabs.SelectedItem = SettingsTab;
 
         _miniMaps = new[]
         {
-
             new MiniMap(ActiveMiniMap, "WebView2MiniActive", () => Target(_vm.SelectedActive)),
             new MiniMap(SpotMiniMap, "WebView2MiniSpot", () => _vm.SelectedSpot is { EntityLat: { } lat, EntityLon: { } lon } s
                 ? new MiniTarget(lat, lon, s.DxCall, s.Entity) : null),
@@ -59,7 +60,6 @@ public partial class MainWindow : Window
         {
             var view = args.PropertyName switch
             {
-
                 nameof(MainViewModel.SelectedActive) => ActiveMiniMap,
                 nameof(MainViewModel.SelectedSpot) => SpotMiniMap,
                 _ => null,
@@ -104,6 +104,85 @@ public partial class MainWindow : Window
         if (_vm.Qrz.HasCall) MainViewModel.Shell($"https://www.qrz.com/db/{Uri.EscapeDataString(_vm.Qrz.Call)}");
     }
 
+    /// <summary>
+    /// I file delle mappe (html, Leaflet, dati) sono serviti dal programma stesso: così funziona
+    /// anche se la cartella d'installazione non è leggibile dal processo di WebView2.
+    /// </summary>
+    private static void ServeMapAssets(CoreWebView2 core)
+    {
+        var mapDir = Path.Combine(AppContext.BaseDirectory, "Assets", "map");
+        core.AddWebResourceRequestedFilter($"https://{MapHost}/*", CoreWebView2WebResourceContext.All);
+        core.WebResourceRequested += (_, args) =>
+        {
+            var name = Path.GetFileName(new Uri(args.Request.Uri).AbsolutePath);
+            var file = Path.Combine(mapDir, name);
+            if (name.Length == 0 || !File.Exists(file))
+            {
+                args.Response = core.Environment.CreateWebResourceResponse(null, 404, "Not Found", "");
+                return;
+            }
+            var type = Path.GetExtension(name).ToLowerInvariant() switch
+            {
+                ".html" => "text/html; charset=utf-8",
+                ".js" => "text/javascript; charset=utf-8",
+                ".css" => "text/css; charset=utf-8",
+                ".png" => "image/png",
+                _ => "application/octet-stream",
+            };
+            args.Response = core.Environment.CreateWebResourceResponse(
+                new MemoryStream(File.ReadAllBytes(file)), 200, "OK", $"Content-Type: {type}");
+        };
+    }
+
+    // ---------------------------------------------------------------- contee USA
+
+    private bool _countyStarted, _countyReady;
+
+    // Come le altre mappe, si inizializza la prima volta che la scheda viene aperta.
+    private async void CountyMap_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (_countyStarted) return;
+        _countyStarted = true;
+        try
+        {
+            var env = await CoreWebView2Environment.CreateAsync(null, Path.Combine(AppPaths.DataDir, "WebView2Counties"));
+            await CountyMap.EnsureCoreWebView2Async(env);
+            var core = CountyMap.CoreWebView2;
+            ServeMapAssets(core);
+            core.Settings.AreDevToolsEnabled = false;
+            core.Settings.AreDefaultContextMenusEnabled = false;
+            core.Settings.IsStatusBarEnabled = false;
+            core.NewWindowRequested += (_, args) => { args.Handled = true; MainViewModel.Shell(args.Uri); };
+            core.NavigationStarting += (_, args) =>
+            {
+                if (new Uri(args.Uri).Host == MapHost) return;
+                args.Cancel = true;
+                MainViewModel.Shell(args.Uri);
+            };
+            core.NavigationCompleted += (_, args) =>
+            {
+                if (!args.IsSuccess) return;
+                _countyReady = true;
+                CountyMessage.Visibility = Visibility.Collapsed;
+                PushCounties();
+            };
+            core.Navigate($"https://{MapHost}/counties.html");
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Mappa delle contee non disponibile", ex);
+            CountyMap.Visibility = Visibility.Collapsed;
+            CountyMessage.Text = "La mappa non è disponibile: manca il componente Microsoft Edge WebView2 Runtime.";
+        }
+    }
+
+    private async void PushCounties()
+    {
+        if (!_countyReady) return;
+        try { await CountyMap.ExecuteScriptAsync($"countyUpdate({_vm.BuildCountyJson()})"); }
+        catch (Exception ex) { Log.Warn($"Mappa contee: {ex.Message}"); }
+    }
+
     // La mappa si inizializza la prima volta che la scheda viene aperta.
     private async void Map_Loaded(object sender, RoutedEventArgs e)
     {
@@ -114,30 +193,8 @@ public partial class MainWindow : Window
             var env = await CoreWebView2Environment.CreateAsync(null, Path.Combine(AppPaths.DataDir, "WebView2"));
             await Map.EnsureCoreWebView2Async(env);
             var core = Map.CoreWebView2;
-            // I file della mappa (map.html, Leaflet) sono serviti dal programma stesso: così funziona
-            // anche se la cartella d'installazione non è leggibile dal processo di WebView2.
-            var mapDir = Path.Combine(AppContext.BaseDirectory, "Assets", "map");
-            core.AddWebResourceRequestedFilter($"https://{MapHost}/*", CoreWebView2WebResourceContext.All);
-            core.WebResourceRequested += (_, args) =>
-            {
-                var name = Path.GetFileName(new Uri(args.Request.Uri).AbsolutePath);
-                var file = Path.Combine(mapDir, name);
-                if (name.Length == 0 || !File.Exists(file))
-                {
-                    args.Response = core.Environment.CreateWebResourceResponse(null, 404, "Not Found", "");
-                    return;
-                }
-                var type = Path.GetExtension(name).ToLowerInvariant() switch
-                {
-                    ".html" => "text/html; charset=utf-8",
-                    ".js" => "text/javascript; charset=utf-8",
-                    ".css" => "text/css; charset=utf-8",
-                    ".png" => "image/png",
-                    _ => "application/octet-stream",
-                };
-                args.Response = core.Environment.CreateWebResourceResponse(
-                    new MemoryStream(File.ReadAllBytes(file)), 200, "OK", $"Content-Type: {type}");
-            };
+            ServeMapAssets(core);
+
             core.Settings.AreDevToolsEnabled = false;
             core.Settings.AreDefaultContextMenusEnabled = false;
             core.Settings.IsStatusBarEnabled = false;
@@ -187,28 +244,8 @@ public partial class MainWindow : Window
             var env = await CoreWebView2Environment.CreateAsync(null, Path.Combine(AppPaths.DataDir, m.DataDir));
             await m.View.EnsureCoreWebView2Async(env);
             var core = m.View.CoreWebView2;
-            var mapDir = Path.Combine(AppContext.BaseDirectory, "Assets", "map");
-            core.AddWebResourceRequestedFilter($"https://{MapHost}/*", CoreWebView2WebResourceContext.All);
-            core.WebResourceRequested += (_, args) =>
-            {
-                var name = Path.GetFileName(new Uri(args.Request.Uri).AbsolutePath);
-                var file = Path.Combine(mapDir, name);
-                if (name.Length == 0 || !File.Exists(file))
-                {
-                    args.Response = core.Environment.CreateWebResourceResponse(null, 404, "Not Found", "");
-                    return;
-                }
-                var type = Path.GetExtension(name).ToLowerInvariant() switch
-                {
-                    ".html" => "text/html; charset=utf-8",
-                    ".js" => "text/javascript; charset=utf-8",
-                    ".css" => "text/css; charset=utf-8",
-                    ".png" => "image/png",
-                    _ => "application/octet-stream",
-                };
-                args.Response = core.Environment.CreateWebResourceResponse(
-                    new MemoryStream(File.ReadAllBytes(file)), 200, "OK", $"Content-Type: {type}");
-            };
+            ServeMapAssets(core);
+
             core.Settings.AreDevToolsEnabled = false;
             core.Settings.AreDefaultContextMenusEnabled = false;
             core.Settings.IsStatusBarEnabled = false;

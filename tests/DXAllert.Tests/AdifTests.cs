@@ -26,6 +26,19 @@ public class AdifTests
         Assert.Equal(new WorkedEntry("IK1AB", "40m", "FT4", "Italy"), Entries[3]);
     }
 
+    [Theory]
+    [InlineData("<STATE:2>MA<CNTY:12>MA,Middlesex", "MA", "Middlesex")]
+    [InlineData("<STATE:2>IL<CNTY:9>IL, Logan", "IL", "Logan")]
+    [InlineData("<STATE:2>NH<CNTY:12>Hillsborough", "NH", "Hillsborough")]
+    [InlineData("<CNTY:16>FL,Miami-Dade", "FL", "Miami-Dade")]
+    [InlineData("<STATE:2>wi", "WI", "")]
+    public void ReadsStateAndCounty(string fields, string state, string county)
+    {
+        var e = Assert.Single(AdifParser.Parse($"<CALL:4>W1AW<BAND:3>20m<MODE:2>CW{fields}<EOR>"));
+        Assert.Equal(state, e.State);
+        Assert.Equal(county, e.County);
+    }
+
     [Fact]
     public void WorksWithoutHeader()
     {
