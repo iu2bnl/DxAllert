@@ -79,7 +79,35 @@ public enum QslFlags { None = 0, Card = 1, Lotw = 2, Eqsl = 4 }
 /// <summary>Un QSO del log ADIF. Per gli Stati Uniti anche stato (STATE) e contea (CNTY, senza lo stato).
 /// Data, conferme, zone CQ/ITU, IOTA e locatore servono ai diplomi.</summary>
 public sealed record WorkedEntry(string Callsign, string Band, string Mode, string DxccName, string State = "", string County = "",
-    DateTime? Date = null, QslFlags Qsl = QslFlags.None, int CqZone = 0, int ItuZone = 0, string Iota = "", string Grid = "");
+    DateTime? Date = null, QslFlags Qsl = QslFlags.None, int CqZone = 0, int ItuZone = 0, string Iota = "", string Grid = "",
+    string AwardRefs = "")
+{
+    /// <summary>Riferimenti dei diplomi assegnati da Log4OM (campo APP_L4ONG_QSO_AWARD_REFERENCES).</summary>
+    public IEnumerable<AwardRef> Refs => AwardRef.Unpack(AwardRefs);
+}
+
+/// <summary>Un riferimento di diploma assegnato dal programma di log: codice (es. WAIP), riferimento (RN),
+/// gruppo (EMILIA-ROMAGNA) e stato (CONFIRMED, VALIDATED o vuoto).</summary>
+public sealed record AwardRef(string Award, string Ref, string Group, string Status)
+{
+    public bool Confirmed => Status is "CONFIRMED" or "VALIDATED";
+
+    public static string Pack(IEnumerable<AwardRef> refs) =>
+        string.Join("\n", refs.Select(r => string.Join("\t", Clean(r.Award), Clean(r.Ref), Clean(r.Group), Clean(r.Status))));
+
+    public static IEnumerable<AwardRef> Unpack(string packed)
+    {
+        if (string.IsNullOrEmpty(packed)) yield break;
+        foreach (var line in packed.Split('\n'))
+        {
+            var f = line.Split('\t');
+            if (f.Length == 4 && f[0].Length > 0 && f[1].Length > 0) yield return new AwardRef(f[0], f[1], f[2], f[3]);
+        }
+    }
+
+    private static string Clean(string s) => s.Replace('\t', ' ').Replace('\n', ' ').Trim();
+}
+
 
 public interface IDxpeditionSource
 {

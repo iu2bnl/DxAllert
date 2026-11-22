@@ -227,6 +227,16 @@ W-100-I, WAOE 100, W 100 OM, LA 100, YV 100/200/300, ZP 100-500, EU-PX-A, Prefix
   comuni, province, fari…) oppure valevano solo in un periodo già passato.
 - Le regole nella scheda sono riassunte: prima di fare domanda va letto il regolamento dell'ente.
 
+**Diplomi da Log4OM.** Log4OM scrive in ogni QSO i riferimenti dei diplomi che segue (campo
+`APP_L4ONG_QSO_AWARD_REFERENCES`, per esempio WAIP, WCA, WAS, WAZ, POTA, JCC). DXAllert mostra un
+diploma per ogni codice presente nel file (gruppo «Da Log4OM») con i riferimenti collegati e, per
+quelli più noti, il totale. Per vedere un diploma in più basta attivarlo in Log4OM, esportare di nuovo
+il log e reimportarlo.
+
+I diplomi di hamlog.online per eventi speciali (oltre mille, quasi tutti a tempo) non si calcolano dal
+proprio log: hamlog li verifica sui log caricati dalle stazioni speciali, cercando il nominativo nella
+pagina del diploma.
+
 ## Aggiornamenti automatici
 
 All'avvio (dopo 20 secondi) e poi una volta al giorno DXAllert legge l'ultima release pubblicata

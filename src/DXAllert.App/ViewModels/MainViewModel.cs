@@ -428,7 +428,7 @@ public partial class MainViewModel : ObservableObject
 
     public ObservableCollection<AwardRow> Awards { get; } = new();
     public string[] AwardGroups { get; } =
-        { "Tutti i gruppi", "Paesi DXCC", "Europa", "Continenti e aree", "Isole", "Stazioni di un paese", "Prefissi" };
+        { "Tutti i gruppi", "Paesi DXCC", "Europa", "Continenti e aree", "Isole", "Stazioni di un paese", "Prefissi", "Da Log4OM" };
     public string[] AwardModes { get; } = { "Tutti i modi", "CW", "Fonia", "Digitali" };
     public string[] AwardBands { get; } = new[] { "Tutte le bande" }.Concat(BandPlan.AllBands).ToArray();
     public string[] AwardConfirmations { get; } =
@@ -474,7 +474,8 @@ public partial class MainViewModel : ObservableObject
         var mode = SelectedAwardMode > 0 ? AwardModes[SelectedAwardMode] : null;
         var band = SelectedAwardBand > 0 ? AwardBands[SelectedAwardBand] : null;
         var confirm = SelectedAwardConfirmation;
-        var defs = _awardDefs;
+        // Ai diplomi del catalogo si aggiungono quelli di cui Log4OM ha scritto i riferimenti nel log.
+        var defs = _awardDefs.Concat(Log4OmAwards.Build(entries)).ToList();
         var byName = cty.Wae.Entities.GroupBy(e => e.Name).ToDictionary(g => g.Key, g => g.First());
 
         var (rows, qsoCount) = await Task.Run(() =>

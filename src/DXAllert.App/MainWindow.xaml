@@ -1040,7 +1040,7 @@
                         <TextBlock Text="{Binding AwardSummary}" VerticalAlignment="Center" Margin="12,0,0,4" Foreground="{DynamicResource Muted}" />
                     </WrapPanel>
                     <TextBlock DockPanel.Dock="Bottom" Margin="16,4,16,8" TextWrapping="Wrap" Foreground="{DynamicResource Muted}" FontSize="12"
-                               Text="Diplomi dell'elenco di VA3RJ (qsl.net/va3rj) che si possono calcolare da un log ADIF. Gli altri chiedono riferimenti che il log non contiene (castelli, parchi, comuni, province…) o valevano solo in un periodo passato. Le regole sono riassunte: prima di fare domanda leggi il regolamento dell'ente." />
+                               Text="Diplomi dell'elenco di VA3RJ (qsl.net/va3rj) calcolati dal log, più quelli di cui Log4OM ha scritto i riferimenti nel file ADIF (gruppo «Da Log4OM»: province, castelli, parchi… compaiono qui se li attivi in Log4OM). Le regole sono riassunte: prima di fare domanda leggi il regolamento dell'ente." />
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />

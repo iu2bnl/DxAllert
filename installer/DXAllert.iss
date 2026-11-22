@@ -1,11 +1,11 @@
-; Script Inno Setup 6 per DXAllert.
+﻿; Script Inno Setup 6 per DXAllert.
 ; Prima eseguire la pubblicazione (vedi build.ps1): i file da installare devono essere in ..\publish
 ; Risultato: ..\dist\DXAllert<versione>.exe (es. DXAllert1.1.0.exe)
 
 #define AppName "DXAllert"
 ; build.ps1 passa la versione letta da DXAllert.App.csproj (/DAppVersion=...).
 #ifndef AppVersion
-  #define AppVersion "1.1.3"
+  #define AppVersion "1.1.4"
 #endif
 #define AppExe "dxallert.exe"
 
@@ -31,7 +31,7 @@ UninstallDisplayIcon={app}\{#AppExe}
 Compression=lzma2/max
 SolidCompression=yes
 WizardStyle=modern
-; Lo stesso mutex creato dal programma: l'installer si accorge se DXAllert è in esecuzione.
+; Lo stesso mutex creato dal programma: l'installer si accorge se DXAllert Ã¨ in esecuzione.
 AppMutex=DXAllert.SingleInstance
 CloseApplications=yes
 

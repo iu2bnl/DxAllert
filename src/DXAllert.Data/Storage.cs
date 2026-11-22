@@ -75,6 +75,7 @@ public sealed class Repository
         AddColumnIfMissing("worked_log", "ituz", "INTEGER NOT NULL DEFAULT 0");
         AddColumnIfMissing("worked_log", "iota", "TEXT NOT NULL DEFAULT ''");
         AddColumnIfMissing("worked_log", "grid", "TEXT NOT NULL DEFAULT ''");
+        AddColumnIfMissing("worked_log", "award_refs", "TEXT NOT NULL DEFAULT ''");
     }
 
     /// <summary>Aggiorna i database creati da versioni precedenti.</summary>
@@ -197,8 +198,8 @@ public sealed class Repository
             del.CommandText = "DELETE FROM worked_log";
             del.ExecuteNonQuery();
             using var ins = c.CreateCommand();
-            ins.CommandText = "INSERT INTO worked_log(callsign,band,mode,dxcc_name,state,county,qso_date,qsl,cqz,ituz,iota,grid) " +
-                              "VALUES($c,$b,$m,$e,$s,$n,$d,$q,$z,$i,$o,$g)";
+            ins.CommandText = "INSERT INTO worked_log(callsign,band,mode,dxcc_name,state,county,qso_date,qsl,cqz,ituz,iota,grid,award_refs) " +
+                              "VALUES($c,$b,$m,$e,$s,$n,$d,$q,$z,$i,$o,$g,$r)";
             foreach (var e in entries)
             {
                 ins.Parameters.Clear();
@@ -214,6 +215,7 @@ public sealed class Repository
                 ins.Parameters.AddWithValue("$i", e.ItuZone);
                 ins.Parameters.AddWithValue("$o", e.Iota);
                 ins.Parameters.AddWithValue("$g", e.Grid);
+                ins.Parameters.AddWithValue("$r", e.AwardRefs);
                 ins.ExecuteNonQuery();
             }
             t.Commit();
@@ -227,12 +229,12 @@ public sealed class Repository
         {
             using var c = Open();
             using var cmd = c.CreateCommand();
-            cmd.CommandText = "SELECT callsign, band, mode, dxcc_name, state, county, qso_date, qsl, cqz, ituz, iota, grid FROM worked_log";
+            cmd.CommandText = "SELECT callsign, band, mode, dxcc_name, state, county, qso_date, qsl, cqz, ituz, iota, grid, award_refs FROM worked_log";
             using var r = cmd.ExecuteReader();
             while (r.Read())
                 list.Add(new WorkedEntry(r.GetString(0), r.GetString(1), r.GetString(2), r.GetString(3), r.GetString(4), r.GetString(5),
                     DateTime.TryParseExact(r.GetString(6), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var d) ? d : null,
-                    (QslFlags)r.GetInt32(7), r.GetInt32(8), r.GetInt32(9), r.GetString(10), r.GetString(11)));
+                    (QslFlags)r.GetInt32(7), r.GetInt32(8), r.GetInt32(9), r.GetString(10), r.GetString(11), r.GetString(12)));
         }
         return list;
     }

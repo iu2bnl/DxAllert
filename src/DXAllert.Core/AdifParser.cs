@@ -67,10 +67,33 @@ public static class AdifParser
             var itu = int.TryParse(fields.GetValueOrDefault("ITUZ", ""), out var z2) ? z2 : 0;
             var iota = fields.GetValueOrDefault("IOTA", "").ToUpperInvariant();
             var grid = fields.GetValueOrDefault("GRIDSQUARE", "").ToUpperInvariant();
+            var refs = Log4OmRefs(fields.GetValueOrDefault("APP_L4ONG_QSO_AWARD_REFERENCES", ""));
 
-            results.Add(new WorkedEntry(call, band, mode, country, state, county, date, qsl, cq, itu, iota, grid));
+            results.Add(new WorkedEntry(call, band, mode, country, state, county, date, qsl, cq, itu, iota, grid, refs));
         }
         return results;
+    }
+
+    /// <summary>Riferimenti dei diplomi di Log4OM: [{"AC":"WAIP","R":"RN","G":"EMILIA-ROMAGNA","S":"CONFIRMED"}, …].</summary>
+    private static string Log4OmRefs(string json)
+    {
+        if (json.Length == 0 || json[0] != '[') return "";
+        try
+        {
+            using var doc = System.Text.Json.JsonDocument.Parse(json);
+            var refs = new List<AwardRef>();
+            foreach (var e in doc.RootElement.EnumerateArray())
+            {
+                string Get(string n) => e.TryGetProperty(n, out var v) && v.ValueKind == System.Text.Json.JsonValueKind.String ? v.GetString() ?? "" : "";
+                var ac = Get("AC").ToUpperInvariant();
+                var r = Get("R");
+                // DXCC_QSL ripete il DXCC solo per le conferme.
+                if (ac.Length == 0 || r.Length == 0 || ac == "DXCC_QSL") continue;
+                refs.Add(new AwardRef(ac, r, Get("G"), Get("S").ToUpperInvariant()));
+            }
+            return AwardRef.Pack(refs);
+        }
+        catch (System.Text.Json.JsonException) { return ""; }
     }
 
     // "Y" (ricevuta) o "V" (verificata) valgono come conferma.

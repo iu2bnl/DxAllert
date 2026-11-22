@@ -122,3 +122,39 @@ public class AwardTests
         Assert.True(AwardCatalog.SpellEuroCountries(calls.Append("IZ1AS").Select(c => Qso(c)).ToList()).Done);
     }
 }
+
+/// <summary>Diplomi letti dai riferimenti di Log4OM (APP_L4ONG_QSO_AWARD_REFERENCES).</summary>
+public class Log4OmAwardTests
+{
+    private const string Refs =
+        """[{"AC":"WAIP","R":"RN","G":"EMILIA-ROMAGNA","SUB":[],"GRA":[]},{"AC":"DXCC_QSL","R":"248","G":"EU"},""" +
+        """{"AC":"POTA","R":"IT-0001","G":"","S":"CONFIRMED"},{"AC":"POTA","R":"IT-0002"},{"AC":"WAS","R":"GA"}]""";
+
+    private static IReadOnlyList<WorkedEntry> Log() => AdifParser.Parse(
+        $"<CALL:5>IK4AA<BAND:3>20m<MODE:2>CW<APP_L4ONG_QSO_AWARD_REFERENCES:{Refs.Length}>{Refs}<EOR>" +
+        "<CALL:5>IK4BB<BAND:3>40m<MODE:2>CW<EOR>");
+
+    [Fact]
+    public void ParserKeepsReferencesButNotDxccQsl()
+    {
+        var refs = Log()[0].Refs.ToList();
+        Assert.Equal(4, refs.Count);
+        Assert.Contains(refs, r => r is { Award: "WAIP", Ref: "RN", Group: "EMILIA-ROMAGNA" });
+        Assert.True(refs.Single(r => r.Ref == "IT-0001").Confirmed);
+        Assert.DoesNotContain(refs, r => r.Award == "DXCC_QSL");
+        Assert.Empty(Log()[1].Refs);
+    }
+
+    [Fact]
+    public void OneAwardPerCodeWithAllReferencesOfTheQso()
+    {
+        var log = Log();
+        var defs = Log4OmAwards.Build(log);
+        Assert.Equal(new[] { "l4o-pota", "l4o-waip", "l4o-was" }, defs.Select(d => d.Id));
+        var qsos = log.Select(e => new AwardQso(e, null, null, null)).ToList();
+        var pota = AwardEngine.Evaluate(defs.Single(d => d.Id == "l4o-pota"), qsos);
+        Assert.Equal(2, pota.Progress);   // un QSO, due parchi
+        Assert.Equal("RN · EMILIA-ROMAGNA", AwardEngine.Evaluate(defs.Single(d => d.Id == "l4o-waip"), qsos).Items.Single().Key);
+        Assert.Equal("Tutti", AwardEngine.Evaluate(defs.Single(d => d.Id == "l4o-was"), qsos).Next?.Label);   // 1 di 50
+    }
+}

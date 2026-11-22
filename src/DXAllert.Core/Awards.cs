@@ -42,6 +42,8 @@ public sealed record AwardDef
 
     /// <summary>Voce del diploma per il QSO, o null se il QSO non conta.</summary>
     public required Func<AwardQso, string?> Key { get; init; }
+    /// <summary>Più voci per lo stesso QSO (se indicato, sostituisce Key).</summary>
+    public Func<AwardQso, IEnumerable<string>>? Keys { get; init; }
     /// <summary>Elenco completo delle voci (per mostrare quelle mancanti); null se aperto (stazioni, prefissi).</summary>
     public IReadOnlyList<AwardItem>? Items { get; init; }
     /// <summary>Le voci vanno mostrate sulla mappa (sono entità DXCC).</summary>
@@ -93,12 +95,14 @@ public static class AwardEngine
         var byKey = new Dictionary<string, (HashSet<string> Calls, HashSet<string> Bands, int Qsos, DxccEntity? Ent)>(StringComparer.OrdinalIgnoreCase);
         foreach (var q in valid)
         {
-            var k = def.Key(q);
-            if (k is null) continue;
-            if (!byKey.TryGetValue(k, out var v)) byKey[k] = v = (new(StringComparer.OrdinalIgnoreCase), new(), 0, q.Wae ?? q.Dxcc);
-            v.Calls.Add(Callsign.Base(q.Call));
-            v.Bands.Add(q.Band);
-            byKey[k] = v with { Qsos = v.Qsos + 1 };
+            var keys = def.Keys?.Invoke(q) ?? (def.Key(q) is { } one ? new[] { one } : Array.Empty<string>());
+            foreach (var k in keys.Distinct(StringComparer.OrdinalIgnoreCase))
+            {
+                if (!byKey.TryGetValue(k, out var v)) byKey[k] = v = (new(StringComparer.OrdinalIgnoreCase), new(), 0, q.Wae ?? q.Dxcc);
+                v.Calls.Add(Callsign.Base(q.Call));
+                v.Bands.Add(q.Band);
+                byKey[k] = v with { Qsos = v.Qsos + 1 };
+            }
         }
 
         bool Counts(string k) => byKey.TryGetValue(k, out var v) && v.Calls.Count >= def.CallsPerKey && v.Bands.Count >= def.BandsPerKey;

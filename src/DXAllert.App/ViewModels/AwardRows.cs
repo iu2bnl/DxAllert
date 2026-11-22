@@ -21,6 +21,14 @@ public sealed class AwardRow
                : n.Label)
             : "Completato";
         IsDone = r.Next is null;
+        if (d.Levels.Length == 0)
+        {
+            // Diplomi senza classi note (es. quelli di Log4OM): si mostra solo il conteggio.
+            ProgressText = r.Value.ToString();
+            ReachedText = "—";
+            NextText = "—";
+            IsDone = false;
+        }
 
         Levels = d.Levels.Select(l => new AwardLevelRow(l.Label,
             Describe(l, d), r.Reached is { } reached && Array.IndexOf(d.Levels, l) <= Array.IndexOf(d.Levels, reached))).ToList();
