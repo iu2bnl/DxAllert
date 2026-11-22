@@ -1,9 +1,12 @@
 ; Script Inno Setup 6 per DXAllert.
 ; Prima eseguire la pubblicazione (vedi build.ps1): i file da installare devono essere in ..\publish
-; Risultato: ..\dist\DXAllert-Setup.exe
+; Risultato: ..\dist\DXAllert<versione>.exe (es. DXAllert1.1.0.exe)
 
 #define AppName "DXAllert"
-#define AppVersion "1.0.9"
+; build.ps1 passa la versione letta da DXAllert.App.csproj (/DAppVersion=...).
+#ifndef AppVersion
+  #define AppVersion "1.1.0"
+#endif
 #define AppExe "dxallert.exe"
 
 [Setup]
@@ -22,7 +25,7 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0.17763
 OutputDir=..\dist
-OutputBaseFilename=DXAllert-Setup
+OutputBaseFilename={#AppName}{#AppVersion}
 SetupIconFile=..\src\DXAllert.App\app.ico
 UninstallDisplayIcon={app}\{#AppExe}
 Compression=lzma2/max

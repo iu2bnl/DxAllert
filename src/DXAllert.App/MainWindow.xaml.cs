@@ -99,6 +99,11 @@ public partial class MainWindow : Window
             MainViewModel.Shell($"https://www.hamqth.com/{Uri.EscapeDataString(call)}");
     }
 
+    private void OpenContestRules_Click(object sender, RoutedEventArgs e)
+    {
+        if ((sender as FrameworkElement)?.DataContext is ContestRow { HasUrl: true } row) MainViewModel.Shell(row.Url);
+    }
+
     private void OpenQrz_Click(object sender, RoutedEventArgs e)
     {
         if (_vm.Qrz.HasCall) MainViewModel.Shell($"https://www.qrz.com/db/{Uri.EscapeDataString(_vm.Qrz.Call)}");

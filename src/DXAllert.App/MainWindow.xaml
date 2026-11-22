@@ -708,6 +708,295 @@
                 </DockPanel>
             </TabItem>
 
+            <!-- CONTEST: calendario dei contest italiani, europei e mondiali -->
+            <TabItem Header="Contest">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="16,8">
+                        <CheckBox Content="Vista calendario" IsChecked="{Binding ContestCalendarView}" Margin="0,0,20,0" />
+                        <ComboBox ItemsSource="{Binding ContestRegions}" SelectedIndex="{Binding SelectedContestRegion}" Width="170" Margin="0,0,8,0"
+                                  ToolTip="Filtro per area: chi organizza il contest" />
+                        <TextBlock Text="Cerca (nome, modo, banda):" VerticalAlignment="Center" Margin="8,0,6,0" Foreground="{DynamicResource Muted}" />
+                        <TextBox Text="{Binding ContestFilter, UpdateSourceTrigger=PropertyChanged}" Width="180" />
+                        <TextBlock Text="{Binding ContestTableSummary}" VerticalAlignment="Center" Margin="12,0,0,0" Foreground="{DynamicResource Muted}">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ContestCalendarView}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </StackPanel>
+                    <TextBlock DockPanel.Dock="Bottom" Margin="16,4,16,8" TextWrapping="Wrap" Foreground="{DynamicResource Muted}" FontSize="12">
+                        <Run Text="Date calcolate dalla regola abituale di ogni contest (Italia: regolamenti ARI 2026): controlla sempre il regolamento dell'anno." />
+                        <Run Text="{Binding ContestSourceText, Mode=OneWay}" />
+                    </TextBlock>
+                    <!-- Dettagli del contest selezionato -->
+                    <ContentControl DockPanel.Dock="Bottom" Content="{Binding SelectedContest}" Focusable="False">
+                        <ContentControl.Style>
+                            <Style TargetType="ContentControl">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SelectedContest}" Value="{x:Null}">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ContentControl.Style>
+                        <ContentControl.ContentTemplate>
+                            <DataTemplate>
+                                <Border Background="{DynamicResource Panel}" BorderBrush="{DynamicResource Line}" BorderThickness="0,1,0,0" Padding="14,10">
+                                    <DockPanel>
+                                        <Button DockPanel.Dock="Right" Content="Apri il regolamento" Click="OpenContestRules_Click" VerticalAlignment="Center"
+                                                Visibility="{Binding HasUrl, Converter={StaticResource BoolToVis}}" />
+                                        <StackPanel>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Ellipse Width="11" Height="11" Fill="{Binding RegionColor}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                                                <TextBlock Text="{Binding Name}" FontSize="17" FontWeight="Bold" />
+                                                <TextBlock Text="{Binding Region}" Foreground="{DynamicResource Muted}" Margin="12,4,0,0" />
+                                            </StackPanel>
+                                            <TextBlock Margin="0,4,0,0">
+                                                <Run Text="{Binding Period, Mode=OneWay}" /><Run Text="  ·  " /><Run Text="{Binding DurationText, Mode=OneWay}" /><Run Text="  ·  " /><Run Text="{Binding WhenText, Mode=OneWay}" FontWeight="SemiBold" />
+                                            </TextBlock>
+                                            <TextBlock Foreground="{DynamicResource Muted}" Margin="0,2,0,0">
+                                                <Run Text="{Binding Details, Mode=OneWay}" /><Run Text="  ·  Fonte: " /><Run Text="{Binding Source, Mode=OneWay}" />
+                                            </TextBlock>
+                                        </StackPanel>
+                                    </DockPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ContentControl.ContentTemplate>
+                    </ContentControl>
+                    <Grid>
+                        <!-- Vista tabella: i prossimi 12 mesi -->
+                        <DataGrid ItemsSource="{Binding Contests}" SelectedItem="{Binding SelectedContest}">
+                            <DataGrid.Style>
+                                <Style TargetType="DataGrid" BasedOn="{StaticResource ClusterGrid}">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding ContestCalendarView}" Value="True">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.Style>
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsRunning}" Value="True">
+                                            <Setter Property="FontWeight" Value="Bold" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.RowStyle>
+                            <DataGrid.Columns>
+                                <DataGridTemplateColumn Header="AREA" SortMemberPath="Region" Width="100">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <Ellipse Width="10" Height="10" Fill="{Binding RegionColor}" VerticalAlignment="Center" Margin="0,0,7,0" />
+                                                <TextBlock Text="{Binding Region}" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridTextColumn Header="CONTEST" Binding="{Binding Name}" Width="340" />
+                                <DataGridTextColumn Header="INIZIO (UTC)" Binding="{Binding StartText}" SortMemberPath="Start" Width="170" />
+                                <DataGridTextColumn Header="FINE (UTC)" Binding="{Binding EndText}" SortMemberPath="End" Width="170" />
+                                <DataGridTextColumn Header="DURATA" Binding="{Binding DurationText}" Width="90" />
+                                <DataGridTextColumn Header="QUANDO" Binding="{Binding WhenText}" SortMemberPath="Start" Width="120" />
+                                <DataGridTextColumn Header="MODI" Binding="{Binding Modes}" Width="130" />
+                                <DataGridTextColumn Header="BANDE" Binding="{Binding Bands}" Width="170" />
+                                <DataGridTextColumn Header="FONTE" Binding="{Binding Source}" Width="200" />
+                                <DataGridTemplateColumn Header="REGOLAMENTO" Width="120">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Button Style="{StaticResource LinkButton}" Content="Apri" Click="OpenContestRules_Click" ToolTip="{Binding Url}"
+                                                    Visibility="{Binding HasUrl, Converter={StaticResource BoolToVis}}" />
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                </DataGridTemplateColumn>
+                            </DataGrid.Columns>
+                        </DataGrid>
+
+                        <!-- Vista calendario: un mese, sei settimane da lunedì -->
+                        <Grid Visibility="{Binding ContestCalendarView, Converter={StaticResource BoolToVis}}">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="5" />
+                                <ColumnDefinition Width="360" MinWidth="220" MaxWidth="620" />
+                            </Grid.ColumnDefinitions>
+                            <DockPanel Grid.Column="0" Margin="12,0,8,8">
+                                <DockPanel DockPanel.Dock="Top" Margin="3,0,3,10">
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Button Content="‹" Command="{Binding PrevContestMonthCommand}" Width="34" Padding="0,2" FontSize="16" ToolTip="Mese precedente" />
+                                        <Button Content="Oggi" Command="{Binding ThisContestMonthCommand}" Margin="6,0" />
+                                        <Button Content="›" Command="{Binding NextContestMonthCommand}" Width="34" Padding="0,2" FontSize="16" ToolTip="Mese successivo" />
+                                        <TextBlock Text="{Binding ContestTitle}" FontSize="22" FontWeight="SemiBold" Margin="16,0,0,0" VerticalAlignment="Center" />
+                                        <TextBlock Text="{Binding ContestSummary}" Foreground="{DynamicResource Muted}" Margin="14,4,0,0" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                    <ItemsControl ItemsSource="{Binding ContestLegend}" HorizontalAlignment="Right" VerticalAlignment="Center" Focusable="False">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <StackPanel Orientation="Horizontal" Margin="10,2,0,2">
+                                                    <Ellipse Width="9" Height="9" Fill="{Binding Color}" VerticalAlignment="Center" />
+                                                    <TextBlock Text="{Binding Name}" FontSize="12" Foreground="{DynamicResource Muted}" Margin="5,0,0,0" />
+                                                </StackPanel>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </DockPanel>
+                                <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding WeekDays}" Margin="0,0,0,2" Focusable="False">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate><UniformGrid Columns="7" /></ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Muted}" Margin="9,0,0,2" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                                <ListBox ItemsSource="{Binding ContestDays}" SelectedItem="{Binding SelectedContestDay}" Background="Transparent" BorderThickness="0"
+                                         Foreground="{DynamicResource Fg}"
+                                         ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                    <ListBox.ItemsPanel>
+                                        <ItemsPanelTemplate><UniformGrid Columns="7" Rows="6" /></ItemsPanelTemplate>
+                                    </ListBox.ItemsPanel>
+                                    <ListBox.ItemContainerStyle>
+                                        <Style TargetType="ListBoxItem">
+                                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                            <Setter Property="VerticalContentAlignment" Value="Stretch" />
+                                            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                                            <Setter Property="Cursor" Value="Hand" />
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="ListBoxItem">
+                                                        <Border x:Name="cell" Margin="3" CornerRadius="6" Padding="7,5" ClipToBounds="True"
+                                                                Background="{DynamicResource Panel}" BorderBrush="{DynamicResource Line}" BorderThickness="1">
+                                                            <ContentPresenter />
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <DataTrigger Binding="{Binding IsWeekend}" Value="True">
+                                                                <Setter TargetName="cell" Property="Background" Value="{DynamicResource PanelAlt}" />
+                                                            </DataTrigger>
+                                                            <DataTrigger Binding="{Binding IsCurrentMonth}" Value="False">
+                                                                <Setter TargetName="cell" Property="Opacity" Value="0.45" />
+                                                            </DataTrigger>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter TargetName="cell" Property="Background" Value="{DynamicResource Hover}" />
+                                                            </Trigger>
+                                                            <DataTrigger Binding="{Binding IsToday}" Value="True">
+                                                                <Setter TargetName="cell" Property="BorderBrush" Value="{DynamicResource Accent}" />
+                                                            </DataTrigger>
+                                                            <Trigger Property="IsSelected" Value="True">
+                                                                <Setter TargetName="cell" Property="BorderBrush" Value="{DynamicResource Accent}" />
+                                                                <Setter TargetName="cell" Property="BorderThickness" Value="2" />
+                                                                <Setter TargetName="cell" Property="Background" Value="{DynamicResource Sel}" />
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </ListBox.ItemContainerStyle>
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <DockPanel>
+                                                <DockPanel DockPanel.Dock="Top" Margin="0,0,0,3">
+                                                    <TextBlock DockPanel.Dock="Right" Text="{Binding CountText}" FontSize="11" Foreground="{DynamicResource Muted}" VerticalAlignment="Center" />
+                                                    <Border x:Name="num" CornerRadius="11" MinWidth="24" Height="22" Padding="5,0" HorizontalAlignment="Left">
+                                                        <TextBlock x:Name="numText" Text="{Binding DayNumber}" FontWeight="SemiBold" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                    </Border>
+                                                </DockPanel>
+                                                <TextBlock DockPanel.Dock="Bottom" Text="{Binding MoreText}" FontSize="11" Foreground="{DynamicResource Muted}" />
+                                                <ItemsControl ItemsSource="{Binding Chips}" Focusable="False">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <Border Background="{Binding RegionColor}" CornerRadius="3" Padding="5,1" Margin="0,1">
+                                                                <Border.ToolTip>
+                                                                    <TextBlock>
+                                                                        <Run Text="{Binding Name, Mode=OneWay}" FontWeight="Bold" /><LineBreak /><Run Text="{Binding Period, Mode=OneWay}" />
+                                                                    </TextBlock>
+                                                                </Border.ToolTip>
+                                                                <TextBlock Text="{Binding Name}" Foreground="#10151A" FontWeight="SemiBold" FontSize="11" TextTrimming="CharacterEllipsis" />
+                                                            </Border>
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </DockPanel>
+                                            <DataTemplate.Triggers>
+                                                <DataTrigger Binding="{Binding IsToday}" Value="True">
+                                                    <Setter TargetName="num" Property="Background" Value="{DynamicResource Accent}" />
+                                                    <Setter TargetName="numText" Property="Foreground" Value="{DynamicResource AccentFg}" />
+                                                </DataTrigger>
+                                            </DataTemplate.Triggers>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </DockPanel>
+
+                            <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                          ResizeBehavior="PreviousAndNext" Background="{DynamicResource Line}" Cursor="SizeWE" />
+
+                            <!-- Contest del giorno selezionato -->
+                            <DockPanel Grid.Column="2" Background="{DynamicResource Panel}">
+                                <StackPanel DockPanel.Dock="Top" Margin="14,10,14,8">
+                                    <TextBlock Text="{Binding ContestDayTitle}" FontSize="16" FontWeight="SemiBold" TextWrapping="Wrap" />
+                                    <TextBlock Text="{Binding ContestDaySubtitle}" Foreground="{DynamicResource Muted}" Margin="0,2,0,0" />
+                                </StackPanel>
+                                <ListBox ItemsSource="{Binding ContestDayRows}" SelectedItem="{Binding SelectedContest}" Background="Transparent" BorderThickness="0"
+                                         Foreground="{DynamicResource Fg}" HorizontalContentAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                    <ListBox.ItemContainerStyle>
+                                        <Style TargetType="ListBoxItem">
+                                            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+                                            <Setter Property="Template">
+                                                <Setter.Value>
+                                                    <ControlTemplate TargetType="ListBoxItem">
+                                                        <Border x:Name="b" Margin="8,2" CornerRadius="5" Background="Transparent">
+                                                            <ContentPresenter />
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter TargetName="b" Property="Background" Value="{DynamicResource Hover}" />
+                                                            </Trigger>
+                                                            <Trigger Property="IsSelected" Value="True">
+                                                                <Setter TargetName="b" Property="Background" Value="{DynamicResource Sel}" />
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Setter.Value>
+                                            </Setter>
+                                        </Style>
+                                    </ListBox.ItemContainerStyle>
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="4" />
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+                                                <Border CornerRadius="2" Background="{Binding RegionColor}" Margin="0,5" />
+                                                <StackPanel Grid.Column="1" Margin="10,6,8,6">
+                                                    <DockPanel>
+                                                        <TextBlock DockPanel.Dock="Right" Text="{Binding Region}" FontSize="11" Foreground="{DynamicResource Muted}" Margin="8,0,0,0" />
+                                                        <TextBlock Text="{Binding Name}" FontSize="13" FontWeight="Bold" TextWrapping="Wrap" />
+                                                    </DockPanel>
+                                                    <TextBlock Text="{Binding Period}" FontSize="12" />
+                                                    <TextBlock Text="{Binding Details}" FontSize="12" Foreground="{DynamicResource Muted}" TextTrimming="CharacterEllipsis" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </DockPanel>
+                        </Grid>
+                    </Grid>
+                </DockPanel>
+            </TabItem>
+
             <!-- CONTEE USA (diploma MARAC USA-CA) dal log ADIF -->
             <TabItem Header="Contee USA">
                 <Grid>

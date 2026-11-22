@@ -1,4 +1,4 @@
-﻿# Compila DXAllert, esegue i test e genera dist\DXAllert-Setup.exe
+# Compila DXAllert, esegue i test e genera dist\DXAllert<versione>.exe (versione da DXAllert.App.csproj)
 # Uso (da PowerShell, nella cartella del progetto):   .\build.ps1
 $ErrorActionPreference = 'Stop'
 Set-Location $PSScriptRoot
@@ -22,8 +22,9 @@ $iscc = @(
     "$env:ProgramFiles\Inno Setup 6\ISCC.exe"
 ) | Where-Object { Test-Path $_ } | Select-Object -First 1
 if (-not $iscc) { throw 'Inno Setup 6 non trovato. Installalo con:  winget install JRSoftware.InnoSetup' }
-& $iscc /Q installer\DXAllert.iss
+$version = ([xml](Get-Content src\DXAllert.App\DXAllert.App.csproj -Raw)).Project.PropertyGroup.Version | Where-Object { $_ } | Select-Object -First 1
+& $iscc /Q "/DAppVersion=$version" installer\DXAllert.iss
 if ($LASTEXITCODE -ne 0) { throw 'Inno Setup ha segnalato un errore.' }
 
-$setup = Get-Item dist\DXAllert-Setup.exe
+$setup = Get-Item "dist\DXAllert$version.exe"
 Write-Host ("Fatto: {0} ({1:N1} MB)" -f $setup.FullName, ($setup.Length / 1MB)) -ForegroundColor Green

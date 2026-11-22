@@ -13,7 +13,7 @@
     <AssemblyName>dxallert</AssemblyName>
     <RootNamespace>DXAllert.App</RootNamespace>
     <ApplicationIcon>app.ico</ApplicationIcon>
-    <Version>1.0.9</Version>
+    <Version>1.1.0</Version>
     <Product>DXAllert</Product>
     <Description>Avvisi DXpedition per radioamatori</Description>
     <SatelliteResourceLanguages>it;en</SatelliteResourceLanguages>

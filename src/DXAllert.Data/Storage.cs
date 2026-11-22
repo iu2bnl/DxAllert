@@ -7,7 +7,13 @@ namespace DXAllert.Data;
 
 public static class AppPaths
 {
-    public static string DataDir { get; } = Path.Combine(
+    /// <summary>Variabile d'ambiente per usare un'altra cartella dati (prove, o più profili sullo stesso PC).</summary>
+    public const string DataDirVariable = "DXALLERT_DATA_DIR";
+
+    public static string? CustomDataDir { get; } =
+        Environment.GetEnvironmentVariable(DataDirVariable) is { Length: > 0 } d ? Path.GetFullPath(d) : null;
+
+    public static string DataDir { get; } = CustomDataDir ?? Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "DXAllert");
     public static string Database => Path.Combine(DataDir, "dxallert.db");
     public static string Settings => Path.Combine(DataDir, "settings.json");

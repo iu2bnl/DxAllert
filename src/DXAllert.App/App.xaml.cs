@@ -1,7 +1,8 @@
-﻿using System.Windows;
+using System.Windows;
 using DXAllert.App.Services;
 using DXAllert.App.ViewModels;
 using DXAllert.Core;
+using DXAllert.Data;
 using WinForms = System.Windows.Forms;
 
 namespace DXAllert.App;
@@ -19,9 +20,17 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
+        // Con una cartella dati diversa (DXALLERT_DATA_DIR) log e istanza sono separati da quella normale.
+        var instance = "";
+        if (AppPaths.CustomDataDir is { } dir)
+        {
+            Log.Directory = System.IO.Path.Combine(dir, "logs");
+            instance = "." + Convert.ToHexString(System.Security.Cryptography.SHA1.HashData(System.Text.Encoding.UTF8.GetBytes(dir.ToUpperInvariant())))[..8];
+        }
+
         // Una sola istanza: la seconda chiede alla prima di mostrarsi ed esce.
-        _singleInstance = new Mutex(true, "DXAllert.SingleInstance", out var first);
-        _showSignal = new EventWaitHandle(false, EventResetMode.AutoReset, "DXAllert.ShowWindow");
+        _singleInstance = new Mutex(true, "DXAllert.SingleInstance" + instance, out var first);
+        _showSignal = new EventWaitHandle(false, EventResetMode.AutoReset, "DXAllert.ShowWindow" + instance);
         if (!first)
         {
             _showSignal.Set();

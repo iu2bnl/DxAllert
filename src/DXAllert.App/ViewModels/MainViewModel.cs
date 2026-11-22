@@ -208,6 +208,118 @@ public partial class MainViewModel : ObservableObject
         Rebuild();
     }
 
+    // ---------------------------------------------------------------- calendario dei contest
+
+    public ObservableCollection<ContestRow> Contests { get; } = new();
+    public ObservableCollection<ContestDay> ContestDays { get; } = new();
+    public ObservableCollection<ContestRow> ContestDayRows { get; } = new();
+    public IReadOnlyList<LegendItem> ContestLegend => ContestColors.Legend;
+    public string[] ContestRegions { get; } = { "Tutte le aree", "Italia", "Europa", "Mondo", "Altri (WA7BNM)" };
+
+    private DateTime _contestMonth = new(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+    private List<IcsEvent> _weeklyContests = new();
+    private DateTime _contestsLoadedUtc = DateTime.MinValue;
+    [ObservableProperty] private bool _contestCalendarView = true;
+    [ObservableProperty] private int _selectedContestRegion;
+    [ObservableProperty] private string _contestFilter = "";
+    [ObservableProperty] private string _contestTitle = "";
+    [ObservableProperty] private string _contestSummary = "";
+    [ObservableProperty] private string _contestTableSummary = "";
+    [ObservableProperty] private string _contestSourceText = "";
+    [ObservableProperty] private ContestDay? _selectedContestDay;
+    [ObservableProperty] private ContestRow? _selectedContest;
+    [ObservableProperty] private string _contestDayTitle = "";
+    [ObservableProperty] private string _contestDaySubtitle = "";
+
+    partial void OnSelectedContestRegionChanged(int value) => BuildContests();
+    partial void OnContestFilterChanged(string value) => BuildContests();
+
+    partial void OnSelectedContestDayChanged(ContestDay? value)
+    {
+        ContestDayRows.Clear();
+        if (value is null) { ContestDayTitle = ContestDaySubtitle = ""; return; }
+        foreach (var r in value.Rows) ContestDayRows.Add(r);
+        ContestDayTitle = Capitalize(value.Date.ToString("dddd d MMMM yyyy", It));
+        ContestDaySubtitle = value.Rows.Count == 0 ? "Nessun contest in questo giorno." : value.CountText;
+    }
+
+    [RelayCommand]
+    private void PrevContestMonth() { _contestMonth = _contestMonth.AddMonths(-1); BuildContests(); }
+
+    [RelayCommand]
+    private void NextContestMonth() { _contestMonth = _contestMonth.AddMonths(1); BuildContests(); }
+
+    [RelayCommand]
+    private void ThisContestMonth()
+    {
+        var today = DateTime.UtcNow.Date;
+        _contestMonth = new DateTime(today.Year, today.Month, 1);
+        SelectedContestDay = null;
+        BuildContests();
+    }
+
+    private async Task LoadContestsAsync()
+    {
+        _contestsLoadedUtc = DateTime.UtcNow;
+        try
+        {
+            var (events, fetched) = await ContestFeed.LoadAsync(_http, _cts.Token);
+            _weeklyContests = events;
+            ContestSourceText = fetched is { } f
+                ? $"Settimana in corso dal WA7BNM Contest Calendar (contestcalendar.com), aggiornato {Fmt.DateTimeUtc(f)}."
+                : "WA7BNM Contest Calendar non raggiungibile: si vedono solo le date calcolate.";
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex) { Log.Warn($"Contest: {ex.Message}"); }
+        BuildContests();
+    }
+
+    private bool ContestWanted(ContestEvent e)
+    {
+        if (SelectedContestRegion > 0 && (int)e.Region != SelectedContestRegion - 1) return false;
+        var text = ContestFilter.Trim();
+        return text.Length == 0 || e.Name.Contains(text, StringComparison.OrdinalIgnoreCase) ||
+               e.Modes.Contains(text, StringComparison.OrdinalIgnoreCase) || e.Bands.Contains(text, StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>Calendario del mese scelto (sei settimane da lunedì) e tabella dei prossimi 12 mesi.</summary>
+    private void BuildContests()
+    {
+        var today = DateTime.UtcNow.Date;
+        var first = _contestMonth;
+        var gridStart = first.AddDays(-(((int)first.DayOfWeek + 6) % 7));
+        var gridEnd = gridStart.AddDays(42);
+        var tableFrom = new DateTime(today.Year, today.Month, 1);
+        var tableTo = tableFrom.AddMonths(12);
+        var from = gridStart < tableFrom ? gridStart : tableFrom;
+        var to = gridEnd > tableTo ? gridEnd : tableTo;
+
+        var rows = ContestCatalog.Merge(ContestCatalog.Between(from, to), _weeklyContests)
+            .Where(ContestWanted).Select(e => new ContestRow(e)).ToList();
+
+        var selected = SelectedContest?.Name;
+        Contests.Clear();
+        foreach (var r in rows.Where(r => r.End > tableFrom && r.Start < tableTo)) Contests.Add(r);
+        ContestTableSummary = $"{Contests.Count} contest da {Months[tableFrom.Month].ToLowerInvariant()} {tableFrom.Year} a {Months[tableTo.AddDays(-1).Month].ToLowerInvariant()} {tableTo.AddDays(-1).Year}";
+
+        var keep = SelectedContestDay?.Date;
+        ContestDays.Clear();
+        for (int i = 0; i < 42; i++)
+        {
+            var day = gridStart.AddDays(i);
+            var onDay = rows.Where(r => r.Start < day.AddDays(1) && r.End > day).ToList();
+            ContestDays.Add(new ContestDay(day, day.Month == first.Month, day == today, onDay));
+        }
+        ContestTitle = Capitalize(first.ToString("MMMM yyyy", It));
+        var monthEnd = first.AddMonths(1);
+        ContestSummary = $"{rows.Count(r => r.Start < monthEnd && r.End > first)} contest nel mese";
+
+        bool InShownMonth(DateTime? d) => d is { } x && x.Year == first.Year && x.Month == first.Month;
+        var target = InShownMonth(keep) ? keep : InShownMonth(today) ? today : first;
+        SelectedContestDay = ContestDays.FirstOrDefault(d => d.Date == target);
+        SelectedContest = Contests.FirstOrDefault(r => r.Name == selected);
+    }
+
     // ---------------------------------------------------------------- contee USA (diploma MARAC USA-CA)
 
     /// <summary>Il log è cambiato: la mappa delle contee va ridisegnata.</summary>
@@ -328,6 +440,7 @@ public partial class MainViewModel : ObservableObject
             var bundled = Path.Combine(AppContext.BaseDirectory, "Assets", "cty.dat");
             _cty = await Task.Run(() => CtyProvider.LoadAsync(_http, bundled, _cts.Token));
             Log.Info($"cty.dat caricato: {_cty.Entities.Count} entità, versione {_cty.Version}");
+            BuildContests();
             var cty = _cty;
             DxRow.ResolveCall = call => cty.Resolve(call);
             await LoadWorkedLogAsync();
@@ -336,6 +449,7 @@ public partial class MainViewModel : ObservableObject
             await RefreshAsync(offlineOnly: true);
             await RefreshAsync(offlineOnly: false);
             _ = Task.Run(() => _repo.PurgeSpots());
+            _ = LoadContestsAsync();
             StartSpotSources();
         }
         catch (Exception ex)
@@ -412,6 +526,7 @@ public partial class MainViewModel : ObservableObject
         UtcClock = $"{now:HH:mm:ss} UTC ({now.ToLocalTime():HH:mm})";
         if (!_refreshing && _cty is not null && now - _lastRefreshUtc >= RefreshInterval) _ = RefreshAsync(offlineOnly: false);
         if (++_tick % 30 != 0) return;
+        if (_contestsLoadedUtc != DateTime.MinValue && now - _contestsLoadedUtc > TimeSpan.FromHours(6)) _ = LoadContestsAsync();
 
         var changed = false;
         foreach (var r in Active)
@@ -424,6 +539,7 @@ public partial class MainViewModel : ObservableObject
         {
             _lastDay = now.Date;
             Rebuild(); // a mezzanotte UTC le pianificate di oggi diventano attive
+            BuildContests();
         }
         else if (changed) { UpdateSummaries(); PushMap(); }
         UpdateSpotStatus();

@@ -24,6 +24,10 @@ reale (spot dal DX cluster) e quelle pianificate.
   tessere OpenStreetMap per i dettagli. Nelle schede On Air e Attive ora una minimappa mostra
   il proprio QTH, la DXpedition selezionata e la linea del
   percorso corto (cerchio massimo) tra i due, con distanza e azimut.
+- **Contest**: calendario dei contest italiani, europei e mondiali (area = chi li organizza), con
+  la spunta "Vista calendario" per passare dal mese a una tabella dei prossimi 12 mesi. Filtri per
+  area e per nome, modo o banda; per ogni contest orari UTC, durata, modi, bande e link al
+  regolamento.
 - **Contee USA**: mappa delle contee degli Stati Uniti lavorate secondo il log ADIF importato, per
   il diploma USA-CA di MARAC (marac.org): totale, prossima classe (USA 500, 1000, …, 3077),
   avanzamento per stato, contee del log non riconosciute e città indipendenti.
@@ -33,7 +37,7 @@ reale (spot dal DX cluster) e quelle pianificate.
 - **Avvisi**: una notifica Windows quando una DXpedition attiva compare on air (una sola
   volta, non a ogni spot).
 
-## Compilare e generare DXAllert-Setup.exe (Windows 10/11)
+## Compilare e generare l'installer (Windows 10/11)
 
 ### 1. Installare gli strumenti (una volta sola)
 
@@ -65,7 +69,7 @@ Lo script fa tre cose in ordine:
    (non serve installare .NET sul PC di destinazione);
 3. compila `installer\DXAllert.iss` con Inno Setup.
 
-Il risultato è `dist\DXAllert-Setup.exe`.
+Il risultato è `dist\DXAllert<versione>.exe`, per esempio `dist\DXAllert1.1.0.exe`: la versione si cambia solo in `<Version>` di `src\DXAllert.App\DXAllert.App.csproj`, e build.ps1 la passa anche a Inno Setup.
 
 ### In alternativa, i tre passi a mano
 
@@ -80,7 +84,7 @@ dotnet publish src\DXAllert.App -c Release -r win-x64 --self-contained true -o p
 
 ### 4. Installare
 
-Doppio clic su `DXAllert-Setup.exe`. L'installer:
+Doppio clic su `DXAllert<versione>.exe`. L'installer:
 
 - installa `dxallert.exe` senza chiedere i diritti di amministratore;
 - crea il collegamento nel menu Start e, se lasci la spunta, sul desktop;
@@ -167,6 +171,17 @@ L'entità DXCC di ogni QSO è ricavata dal nominativo con `cty.dat`, non dal nom
 file. Se nel QSO manca la banda si usa la frequenza; il sottomodo (per esempio FT4) ha la
 precedenza sul modo. Modulo `src\DXAllert.Core\AdifParser.cs`.
 
+## Calendario dei contest
+
+- Le date vengono dalla regola abituale di ogni contest (es. "ultimo fine settimana completo di
+  ottobre"), scritta in `src\DXAllert.Core\Contests.cs`; per i contest italiani le regole sono
+  quelle dei regolamenti ARI 2026. Gli organizzatori possono cambiare le date: il regolamento
+  dell'anno resta il riferimento.
+- La settimana in corso è completata con il feed iCal del WA7BNM Contest Calendar
+  (contestcalendar.com), scaricato al più ogni 6 ore: le sue condizioni d'uso permettono di
+  caricare il feed in un calendario per uso personale. Il feed dà orari esatti e anche i contest
+  minori, che compaiono come "Altri".
+
 ## Contee USA (MARAC USA-CA)
 
 La scheda legge dal log importato i campi `STATE` e `CNTY` dei QSO con Stati Uniti, Alaska e
@@ -190,6 +205,16 @@ fanno parte del diploma.
   "County" o "Parish" ("Saint" vale "St."); alcuni vecchi nomi sono riconosciuti (Dade →
   Miami-Dade, Shannon → Oglala Lakota). Le voci che non corrispondono a nessuna contea sono
   elencate nella scheda.
+
+## Cartella dati separata
+
+Con la variabile d'ambiente `DXALLERT_DATA_DIR` il programma usa un'altra cartella per
+impostazioni, database, cache e log, e può girare accanto all'istanza normale (serve per provare
+una nuova versione senza toccare i propri dati):
+
+```powershell
+$env:DXALLERT_DATA_DIR = "C:\DXAllert-prova"; & ".\publish\dxallert.exe"
+```
 
 ## Struttura del progetto
 

@@ -273,3 +273,97 @@ public sealed class CalendarEntry
     public string Dates => $"{Row.StartText} – {Row.EndText}";
     public string Details => string.Join(" · ", new[] { Dates, Row.Bands, Row.Modes }.Where(s => s.Length > 0));
 }
+
+// ---------------------------------------------------------------- contest
+
+public static class ContestColors
+{
+    public static string Of(ContestRegion r) => r switch
+    {
+        ContestRegion.Italia => "#2E9E5B",
+        ContestRegion.Europa => "#42A5F5",
+        ContestRegion.Mondo => "#FFA726",
+        _ => "#8D99A6",
+    };
+
+    public static string Label(ContestRegion r) => r == ContestRegion.Altro ? "Altri" : r.ToString();
+
+    public static readonly IReadOnlyList<LegendItem> Legend = new[]
+    {
+        new LegendItem("Italia", Of(ContestRegion.Italia)), new LegendItem("Europa", Of(ContestRegion.Europa)),
+        new LegendItem("Mondo", Of(ContestRegion.Mondo)), new LegendItem("Altri (WA7BNM)", Of(ContestRegion.Altro)),
+    };
+}
+
+/// <summary>Un'edizione di un contest nella tabella e nel calendario.</summary>
+public sealed class ContestRow
+{
+    private static readonly CultureInfo It = CultureInfo.GetCultureInfo("it-IT");
+
+    public ContestRow(ContestEvent e) => Event = e;
+
+    public ContestEvent Event { get; }
+    public string Name => Event.Name;
+    public DateTime Start => Event.StartUtc;
+    public DateTime End => Event.EndUtc;
+    public string Region => ContestColors.Label(Event.Region);
+    public string RegionColor => ContestColors.Of(Event.Region);
+    public string Modes => Event.Modes;
+    public string Bands => Event.Bands;
+    public string Url => Event.Url;
+    public bool HasUrl => Event.Url.Length > 0;
+    public string Source => Event.FromWeeklyFeed ? "WA7BNM (orari confermati)" : "Regola annuale";
+    public string StartText => Event.StartUtc.ToString("ddd dd/MM HH:mm", It) + " UTC";
+    public string EndText => Event.EndUtc.ToString("ddd dd/MM HH:mm", It) + " UTC";
+    public string Period => $"{StartText} → {EndText}";
+    public string Details => string.Join(" · ", new[] { Modes, Bands }.Where(s => s.Length > 0));
+
+    public string DurationText
+    {
+        get
+        {
+            var h = (Event.EndUtc - Event.StartUtc).TotalHours;
+            return h >= 47.5 ? $"{Math.Round(h / 24.0, 1):0.#} giorni" : $"{Math.Round(h):0} ore";
+        }
+    }
+
+    public string WhenText
+    {
+        get
+        {
+            var now = DateTime.UtcNow;
+            if (Event.EndUtc <= now) return "concluso";
+            if (Event.StartUtc <= now) return "in corso";
+            var days = (Event.StartUtc.Date - now.Date).Days;
+            return days switch { 0 => "oggi", 1 => "domani", var n => $"tra {n} giorni" };
+        }
+    }
+
+    public bool IsRunning => Event.StartUtc <= DateTime.UtcNow && DateTime.UtcNow < Event.EndUtc;
+}
+
+/// <summary>Una casella del calendario dei contest.</summary>
+public sealed class ContestDay
+{
+    private const int MaxChips = 2;
+
+    public ContestDay(DateTime date, bool isCurrentMonth, bool isToday, List<ContestRow> rows)
+    {
+        Date = date;
+        IsCurrentMonth = isCurrentMonth;
+        IsToday = isToday;
+        Rows = rows;
+        Chips = rows.Take(MaxChips).ToList();
+        MoreText = rows.Count > MaxChips ? $"+{rows.Count - MaxChips} altri" : "";
+    }
+
+    public DateTime Date { get; }
+    public bool IsCurrentMonth { get; }
+    public bool IsToday { get; }
+    public bool IsWeekend => Date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
+    public string DayNumber => Date.Day.ToString(CultureInfo.InvariantCulture);
+    public List<ContestRow> Rows { get; }
+    public List<ContestRow> Chips { get; }
+    public string MoreText { get; }
+    public string CountText => Rows.Count switch { 0 => "", 1 => "1 contest", var n => $"{n} contest" };
+}
