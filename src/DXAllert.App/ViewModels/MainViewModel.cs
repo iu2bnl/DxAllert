@@ -326,6 +326,104 @@ public partial class MainViewModel : ObservableObject
         SelectedContest = Contests.FirstOrDefault(r => r.Name == selected);
     }
 
+    // ---------------------------------------------------------------- aggiornamenti (Release di GitHub)
+
+    public static Version CurrentVersion { get; } = typeof(MainViewModel).Assembly.GetName().Version ?? new Version(0, 0, 0);
+    private readonly DateTime _startedUtc = DateTime.UtcNow;
+    private DateTime _lastUpdateCheckUtc = DateTime.MinValue;
+    private UpdateService? _updates;
+    private UpdateService Updates => _updates ??= new UpdateService(_http);
+
+    [ObservableProperty] private UpdateInfo? _availableUpdate;
+    [ObservableProperty] private bool _updateBusy;
+    [ObservableProperty] private string _updateStatus = "";
+
+    public bool HasUpdate => AvailableUpdate is not null;
+    public string UpdateText => AvailableUpdate is { } u
+        ? $"È disponibile DXAllert {u.Version.ToString(3)} (hai la {CurrentVersion.ToString(3)})."
+        : "";
+
+    partial void OnAvailableUpdateChanged(UpdateInfo? value)
+    {
+        OnPropertyChanged(nameof(HasUpdate));
+        OnPropertyChanged(nameof(UpdateText));
+    }
+
+    /// <summary>L'installer è pronto: il programma deve chiudersi e lanciarlo con questi argomenti.</summary>
+    public event Action<string, string>? UpdateReady;
+
+    [RelayCommand]
+    private Task CheckUpdatesNow() => CheckUpdatesAsync(manual: true);
+
+    private async Task CheckUpdatesAsync(bool manual)
+    {
+        if (UpdateBusy) return;
+        _lastUpdateCheckUtc = DateTime.UtcNow;
+        if (manual) UpdateStatus = "Controllo degli aggiornamenti in corso…";
+        try
+        {
+            var info = await Updates.CheckAsync(CurrentVersion, _cts.Token);
+            if (info is null)
+            {
+                if (manual) UpdateStatus = $"Hai già l'ultima versione ({CurrentVersion.ToString(3)}).";
+                return;
+            }
+            Log.Info($"Aggiornamento disponibile: {info.Version} ({info.InstallerName})");
+            if (!manual && info.Version.ToString(3) == _settings.SkippedUpdate) return;
+            AvailableUpdate = info;
+            if (manual) UpdateStatus = $"Disponibile la versione {info.Version.ToString(3)}: usa la barra in alto per installarla.";
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex)
+        {
+            Log.Warn($"Controllo aggiornamenti: {ex.Message}");
+            if (manual) UpdateStatus = $"Controllo non riuscito: {ex.Message}";
+        }
+    }
+
+    [RelayCommand]
+    private async Task InstallUpdate()
+    {
+        if (AvailableUpdate is not { } info || UpdateBusy) return;
+        UpdateBusy = true;
+        try
+        {
+            UpdateStatus = "Download dell'aggiornamento…";
+            var progress = new Progress<double>(f => UpdateStatus = $"Download dell'aggiornamento: {f:P0}");
+            var path = await Updates.DownloadAsync(info, progress, _cts.Token);
+            Log.Info($"Aggiornamento scaricato: {path}{(info.Sha256 is null ? "" : " (SHA-256 verificato)")}");
+            UpdateStatus = "Chiusura e installazione dell'aggiornamento…";
+            // Stessa modalità dell'installazione attuale: per tutti gli utenti se il programma è in Programmi.
+            var forAll = Environment.ProcessPath is { } exe &&
+                         exe.StartsWith(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), StringComparison.OrdinalIgnoreCase);
+            UpdateReady?.Invoke(path, $"/SILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS /AUTOUPDATE=1 {(forAll ? "/ALLUSERS" : "/CURRENTUSER")}");
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Aggiornamento non riuscito", ex);
+            UpdateStatus = $"Aggiornamento non riuscito: {ex.Message}";
+            UpdateBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private void ShowUpdateNotes()
+    {
+        if (AvailableUpdate is { PageUrl.Length: > 0 } u) Shell(u.PageUrl);
+    }
+
+    [RelayCommand]
+    private void DismissUpdate() { if (!UpdateBusy) AvailableUpdate = null; }
+
+    [RelayCommand]
+    private void SkipUpdate()
+    {
+        if (AvailableUpdate is not { } u || UpdateBusy) return;
+        _settings.SkippedUpdate = u.Version.ToString(3);
+        SettingsStore.Save(_settings);
+        AvailableUpdate = null;
+    }
+
     // ---------------------------------------------------------------- diplomi (elenco VA3RJ)
 
     public ObservableCollection<AwardRow> Awards { get; } = new();
@@ -631,6 +729,9 @@ public partial class MainViewModel : ObservableObject
 
     private void OnTick()
     {
+        if (_settings.CheckUpdates && DateTime.UtcNow - _lastUpdateCheckUtc > TimeSpan.FromHours(24) &&
+            DateTime.UtcNow - _startedUtc > TimeSpan.FromSeconds(20))
+            _ = CheckUpdatesAsync(manual: false);
         var now = DateTime.UtcNow;
         UtcClock = $"{now:HH:mm:ss} UTC ({now.ToLocalTime():HH:mm})";
         if (!_refreshing && _cty is not null && now - _lastRefreshUtc >= RefreshInterval) _ = RefreshAsync(offlineOnly: false);
@@ -964,6 +1065,7 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty] private bool _editAlertOnSpot;
     [ObservableProperty] private bool _editAlertOnlyFavorites;
     [ObservableProperty] private bool _editAlertSound;
+    [ObservableProperty] private bool _editCheckUpdates;
     [ObservableProperty] private bool _editIncludeSpecial;
     [ObservableProperty] private bool _editDarkTheme;
     [ObservableProperty] private bool _editAutostart;
@@ -992,6 +1094,7 @@ public partial class MainViewModel : ObservableObject
         EditAlertOnSpot = s.AlertOnSpot;
         EditAlertOnlyFavorites = s.AlertOnlyFavorites;
         EditAlertSound = s.AlertSound;
+        EditCheckUpdates = s.CheckUpdates;
         EditIncludeSpecial = s.IncludeSpecialEvents;
         EditDarkTheme = s.DarkTheme;
         EditAutostart = Autostart.IsEnabled();
@@ -1052,6 +1155,8 @@ public partial class MainViewModel : ObservableObject
             AlertOnSpot = EditAlertOnSpot,
             AlertOnlyFavorites = EditAlertOnlyFavorites,
             AlertSound = EditAlertSound,
+            CheckUpdates = EditCheckUpdates,
+            SkippedUpdate = _settings.SkippedUpdate,
             IncludeSpecialEvents = EditIncludeSpecial,
             DarkTheme = EditDarkTheme,
             QrzUser = qrzUser,

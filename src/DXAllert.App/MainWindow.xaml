@@ -215,11 +215,29 @@
                        VerticalAlignment="Center" ToolTip="Ora UTC (ora locale tra parentesi)" />
         </Grid>
 
-        <Border Grid.Row="1" Background="{DynamicResource Sel}" Padding="16,8"
-                Visibility="{Binding NeedsSetup, Converter={StaticResource BoolToVis}}">
-            <TextBlock TextWrapping="Wrap"
-                       Text="Benvenuto! Apri la scheda Impostazioni e inserisci il tuo nominativo e il tuo locator: servono per collegarsi al DX cluster e per calcolare distanza e azimut." />
-        </Border>
+        <StackPanel Grid.Row="1">
+            <!-- Versione nuova su GitHub -->
+            <Border Background="#1FA055" Padding="16,6" Visibility="{Binding HasUpdate, Converter={StaticResource BoolToVis}}">
+                <DockPanel>
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <Button Content="Aggiorna ora" Command="{Binding InstallUpdateCommand}" Margin="8,0,0,0" FontWeight="SemiBold"
+                                />
+                        <Button Content="Novità" Command="{Binding ShowUpdateNotesCommand}" Margin="8,0,0,0" />
+                        <Button Content="Più tardi" Command="{Binding DismissUpdateCommand}" Margin="8,0,0,0" />
+                        <Button Content="Salta questa versione" Command="{Binding SkipUpdateCommand}" Margin="8,0,0,0" />
+                    </StackPanel>
+                    <TextBlock VerticalAlignment="Center" Foreground="White" TextWrapping="Wrap">
+                        <Run Text="{Binding UpdateText, Mode=OneWay}" FontWeight="SemiBold" />
+                        <Run Text="{Binding UpdateStatus, Mode=OneWay}" />
+                    </TextBlock>
+                </DockPanel>
+            </Border>
+            <Border Background="{DynamicResource Sel}" Padding="16,8"
+                    Visibility="{Binding NeedsSetup, Converter={StaticResource BoolToVis}}">
+                <TextBlock TextWrapping="Wrap"
+                           Text="Benvenuto! Apri la scheda Impostazioni e inserisci il tuo nominativo e il tuo locator: servono per collegarsi al DX cluster e per calcolare distanza e azimut." />
+            </Border>
+        </StackPanel>
 
         <TabControl x:Name="Tabs" Grid.Row="2" Foreground="{DynamicResource Fg}">
             <!-- ON AIR: tutti gli spot del cluster, con i dati delle DXpedition attive -->
@@ -1245,6 +1263,15 @@
                         <CheckBox Content="Mostra anche i nominativi speciali (special event) del calendario 425 DX News" IsChecked="{Binding EditIncludeSpecial}" />
                         <CheckBox Content="Tema scuro" IsChecked="{Binding EditDarkTheme}" />
                         <CheckBox Content="Avvia DXAllert con Windows (ridotto nell'area di notifica)" IsChecked="{Binding EditAutostart}" />
+
+                        <TextBlock Text="Aggiornamenti" Style="{StaticResource SectionTitle}" />
+                        <TextBlock Foreground="{DynamicResource Muted}" Margin="0,4,0,4" TextWrapping="Wrap"
+                                   Text="DXAllert controlla le versioni pubblicate su GitHub (github.com/mattianobis/DxAllert, sezione Releases). Se ce n'è una nuova compare una barra verde in alto: con «Aggiorna ora» scarica l'installer, ne verifica l'impronta, chiude il programma, installa e lo riapre." />
+                        <CheckBox Content="Controlla gli aggiornamenti all'avvio e una volta al giorno" IsChecked="{Binding EditCheckUpdates}" />
+                        <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                            <Button Content="Controlla adesso" Command="{Binding CheckUpdatesNowCommand}" />
+                            <TextBlock Text="{Binding UpdateStatus}" VerticalAlignment="Center" Margin="10,0,0,0" Foreground="{DynamicResource Muted}" TextWrapping="Wrap" />
+                        </StackPanel>
 
                         <StackPanel Orientation="Horizontal" Margin="0,20,0,0">
                             <Button Content="Salva" Style="{StaticResource PrimaryButton}" Command="{Binding SaveSettingsCommand}" MinWidth="110" />

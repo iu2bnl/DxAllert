@@ -5,7 +5,7 @@
 #define AppName "DXAllert"
 ; build.ps1 passa la versione letta da DXAllert.App.csproj (/DAppVersion=...).
 #ifndef AppVersion
-  #define AppVersion "1.1.2"
+  #define AppVersion "1.1.3"
 #endif
 #define AppExe "dxallert.exe"
 
@@ -55,6 +55,8 @@ Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: 
 
 [Run]
 Filename: "{app}\{#AppExe}"; Description: "Avvia DXAllert"; Flags: nowait postinstall skipifsilent
+; Aggiornamento automatico (DXAllert lancia l'installer con /SILENT /AUTOUPDATE=1): a fine installazione riapre il programma.
+Filename: "{app}\{#AppExe}"; Flags: nowait runasoriginaluser; Check: IsAutoUpdate
 
 [UninstallDelete]
 ; I dati dell'utente (%AppData%\DXAllert: impostazioni, cache, log) NON vengono cancellati.
@@ -63,6 +65,11 @@ Type: filesandordirs; Name: "{app}"
 [Code]
 const
   WebView2Guid = '{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}';
+
+function IsAutoUpdate: Boolean;
+begin
+  Result := ExpandConstant('{param:AUTOUPDATE|0}') = '1';
+end;
 
 function WebView2Installed: Boolean;
 var

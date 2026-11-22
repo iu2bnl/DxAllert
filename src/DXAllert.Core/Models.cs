@@ -61,6 +61,10 @@ public sealed class AppSettings
     public bool AlertOnSpot { get; set; } = true;
     public bool AlertOnlyFavorites { get; set; }
     public bool AlertSound { get; set; } = true;
+    /// <summary>Controlla all'avvio (e ogni giorno) se su GitHub c'è una versione nuova.</summary>
+    public bool CheckUpdates { get; set; } = true;
+    /// <summary>Versione che l'utente ha scelto di saltare.</summary>
+    public string SkippedUpdate { get; set; } = "";
     public bool IncludeSpecialEvents { get; set; }
     public bool DarkTheme { get; set; }
     public string QrzUser { get; set; } = "";

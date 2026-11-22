@@ -56,6 +56,7 @@ public partial class App : Application
         ApplyTheme(_vm.Settings.DarkTheme);
         _vm.ThemeChanged += ApplyTheme;
         _vm.AlertRaised += alert => Notifier.Show(alert, _vm.Settings.AlertSound);
+        _vm.UpdateReady += (installer, args) => Dispatcher.BeginInvoke(() => ExitApp(installer, args));
 
         _window = new MainWindow(_vm);
         _window.Closing += (_, args) =>
@@ -111,14 +112,25 @@ public partial class App : Application
         _window.Activate();
     }
 
-    private void ExitApp()
+    /// <summary>Chiude il programma; con un installer lo lancia dopo aver liberato il mutex dell'istanza,
+    /// così l'installer non trova DXAllert ancora in esecuzione.</summary>
+    private void ExitApp(string? installer = null, string installerArgs = "")
     {
-        Log.Info("DXAllert chiuso dall'utente");
+        Log.Info(installer is null ? "DXAllert chiuso dall'utente" : $"DXAllert chiuso per l'aggiornamento: {installer}");
         _vm?.Shutdown();
         if (_tray is not null)
         {
             _tray.Visible = false;
             _tray.Dispose();
+        }
+        if (installer is not null)
+        {
+            try { _singleInstance?.ReleaseMutex(); _singleInstance?.Dispose(); _singleInstance = null; } catch { }
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(installer, installerArgs) { UseShellExecute = true });
+            }
+            catch (Exception ex) { Log.Error("Avvio dell'installer non riuscito", ex); }
         }
         Shutdown();
     }

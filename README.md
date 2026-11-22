@@ -1,4 +1,4 @@
-﻿# DXAllert
+# DXAllert
 
 Programma per radioamatori che mostra e segnala le DXpedition attive, quelle on air in tempo
 reale (spot dal DX cluster) e quelle pianificate.
@@ -226,6 +226,25 @@ W-100-I, WAOE 100, W 100 OM, LA 100, YV 100/200/300, ZP 100-500, EU-PX-A, Prefix
 - Gli altri diplomi dell'elenco chiedono riferimenti che un log non contiene (castelli, parchi,
   comuni, province, fari…) oppure valevano solo in un periodo già passato.
 - Le regole nella scheda sono riassunte: prima di fare domanda va letto il regolamento dell'ente.
+
+## Aggiornamenti automatici
+
+All'avvio (dopo 20 secondi) e poi una volta al giorno DXAllert legge l'ultima release pubblicata
+su GitHub (`api.github.com/repos/mattianobis/DxAllert/releases/latest`). Se è più nuova compare
+una barra verde in alto con «Aggiorna ora», «Novità», «Più tardi» e «Salta questa versione».
+
+«Aggiorna ora» scarica l'installer `DXAllert<versione>.exe` (solo da
+`github.com/mattianobis/DxAllert/releases/download/…`) e controlla dimensione e impronta SHA-256
+indicate da GitHub. Poi chiude il programma e lancia l'installer in modalità silenziosa
+(`/SILENT /AUTOUPDATE=1`, per tutti gli utenti se DXAllert è in Programmi). A fine installazione
+l'installer riapre DXAllert. Il controllo si disattiva in Impostazioni > Aggiornamenti.
+
+Perché il programma veda le release, il repository deve essere **pubblico** (oppure le release vanno
+pubblicate in un repository pubblico a parte). Per pubblicare una versione:
+
+1. alzare `<Version>` in `src/DXAllert.App/DXAllert.App.csproj` ed eseguire `.\build.ps1`;
+2. su GitHub, *Releases > Draft a new release*, tag `v<versione>` (es. `v1.1.3`);
+3. allegare `dist\DXAllert<versione>.exe` e pubblicare (non come pre-release).
 
 ## Cartella dati separata
 
