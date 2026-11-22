@@ -10,7 +10,7 @@ public sealed record UpdateInfo(Version Version, string Tag, string PageUrl, str
 /// <summary>Legge la risposta di api.github.com/repos/{owner}/{repo}/releases/latest.</summary>
 public static class ReleaseParser
 {
-    public const string Owner = "mattianobis";
+    public const string Owner = "iu2bnl";
     public const string Repo = "DxAllert";
     public static string LatestApiUrl => $"https://api.github.com/repos/{Owner}/{Repo}/releases/latest";
 

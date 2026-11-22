@@ -169,7 +169,6 @@ public partial class MainViewModel : ObservableObject
         _workedEntries = entries;
         _worked = log;
         CountyDataChanged?.Invoke();
-        await BuildAwardsAsync();
         WorkedStats = log is null
             ? "Nessun log importato."
             : $"Log importato: {log.Count} QSO · {log.UniqueCallsigns} nominativi · {log.UniqueEntities} entità DXCC.";
@@ -209,7 +208,6 @@ public partial class MainViewModel : ObservableObject
         _worked = null;
         _workedEntries = new();
         CountyDataChanged?.Invoke();
-        await BuildAwardsAsync();
         WorkedStats = "Nessun log importato.";
         Rebuild();
     }
@@ -424,109 +422,6 @@ public partial class MainViewModel : ObservableObject
         AvailableUpdate = null;
     }
 
-    // ---------------------------------------------------------------- diplomi (elenco VA3RJ)
-
-    public ObservableCollection<AwardRow> Awards { get; } = new();
-    public string[] AwardGroups { get; } =
-        { "Tutti i gruppi", "Paesi DXCC", "Europa", "Continenti e aree", "Isole", "Stazioni di un paese", "Prefissi", "Da Log4OM" };
-    public string[] AwardModes { get; } = { "Tutti i modi", "CW", "Fonia", "Digitali" };
-    public string[] AwardBands { get; } = new[] { "Tutte le bande" }.Concat(BandPlan.AllBands).ToArray();
-    public string[] AwardConfirmations { get; } =
-        { "Tutti i QSO", "Confermati (QSL, LoTW o eQSL)", "Confermati (QSL o LoTW)", "Confermati via LoTW" };
-
-    [ObservableProperty] private int _selectedAwardGroup;
-    [ObservableProperty] private int _selectedAwardMode;
-    [ObservableProperty] private int _selectedAwardBand;
-    [ObservableProperty] private int _selectedAwardConfirmation;
-    [ObservableProperty] private string _awardFilter = "";
-    [ObservableProperty] private AwardRow? _selectedAward;
-    [ObservableProperty] private string _awardSummary = "";
-
-    /// <summary>Il diploma selezionato o i suoi dati sono cambiati: la mappa va ridisegnata.</summary>
-    public event Action? AwardMapChanged;
-
-    private IReadOnlyList<AwardDef> _awardDefs = Array.Empty<AwardDef>();
-    private List<AwardRow> _allAwards = new();
-    private int _awardBuild;
-
-    partial void OnSelectedAwardGroupChanged(int value) => FilterAwards();
-    partial void OnAwardFilterChanged(string value) => FilterAwards();
-    partial void OnSelectedAwardModeChanged(int value) => _ = BuildAwardsAsync();
-    partial void OnSelectedAwardBandChanged(int value) => _ = BuildAwardsAsync();
-    partial void OnSelectedAwardConfirmationChanged(int value) => _ = BuildAwardsAsync();
-    partial void OnSelectedAwardChanged(AwardRow? value) => AwardMapChanged?.Invoke();
-
-    private static string ModeGroup(string mode) => mode.ToUpperInvariant() switch
-    {
-        "CW" => "CW",
-        "SSB" or "USB" or "LSB" or "AM" or "FM" or "PHONE" or "DIGITALVOICE" => "Fonia",
-        _ => "Digitali",
-    };
-
-    /// <summary>Ricalcola tutti i diplomi dal log importato, con i filtri di modo, banda e conferma.</summary>
-    private async Task BuildAwardsAsync()
-    {
-        var cty = _cty;
-        if (cty is null) return;
-        var build = ++_awardBuild;
-        if (_awardDefs.Count == 0) _awardDefs = AwardCatalog.Build(cty);
-        var entries = _workedEntries;
-        var mode = SelectedAwardMode > 0 ? AwardModes[SelectedAwardMode] : null;
-        var band = SelectedAwardBand > 0 ? AwardBands[SelectedAwardBand] : null;
-        var confirm = SelectedAwardConfirmation;
-        // Ai diplomi del catalogo si aggiungono quelli di cui Log4OM ha scritto i riferimenti nel log.
-        var defs = _awardDefs.Concat(Log4OmAwards.Build(entries)).ToList();
-        var byName = cty.Wae.Entities.GroupBy(e => e.Name).ToDictionary(g => g.Key, g => g.First());
-
-        var (rows, qsoCount) = await Task.Run(() =>
-        {
-            var qsos = entries
-                .Where(e => mode is null || ModeGroup(e.Mode) == mode)
-                .Where(e => band is null || e.Band == band)
-                .Where(e => confirm switch
-                {
-                    1 => e.Qsl != QslFlags.None,
-                    2 => (e.Qsl & (QslFlags.Card | QslFlags.Lotw)) != 0,
-                    3 => (e.Qsl & QslFlags.Lotw) != 0,
-                    _ => true,
-                })
-                .Select(e => new AwardQso(e, cty.Resolve(e.Callsign), cty.Wae.Resolve(e.Callsign), cty.Resolve(Callsign.Base(e.Callsign))))
-                .ToList();
-            return (defs.Select(d => new AwardRow(AwardEngine.Evaluate(d, qsos, n => byName.GetValueOrDefault(n)))).ToList(), qsos.Count);
-        });
-        if (build != _awardBuild) return;   // nel frattempo è partito un altro calcolo
-
-        _allAwards = rows;
-        AwardSummary = entries.Count == 0
-            ? "Nessun log importato: importa il file ADIF in Impostazioni."
-            : $"{qsoCount} QSO considerati · {rows.Count(r => r.Result.Reached is not null)} diplomi con almeno una classe raggiunta";
-        FilterAwards();
-    }
-
-    private void FilterAwards()
-    {
-        var selected = SelectedAward?.Id;
-        var group = SelectedAwardGroup > 0 ? AwardGroups[SelectedAwardGroup] : null;
-        var text = AwardFilter.Trim();
-        Awards.Clear();
-        foreach (var r in _allAwards.Where(r => (group is null || r.Group == group) &&
-                     (text.Length == 0 || r.Name.Contains(text, StringComparison.OrdinalIgnoreCase) ||
-                      r.Sponsor.Contains(text, StringComparison.OrdinalIgnoreCase))))
-            Awards.Add(r);
-        SelectedAward = Awards.FirstOrDefault(r => r.Id == selected) ?? Awards.FirstOrDefault();
-    }
-
-    /// <summary>Punti della mappa per il diploma selezionato (solo i diplomi a elenco di paesi).</summary>
-    public string BuildAwardMapJson()
-    {
-        var items = SelectedAward is { HasMap: true } a
-            ? a.Items.Where(i => i.Entity is not null)
-                .Select(i => new { n = i.Label, lat = i.Entity!.Latitude, lon = i.Entity.Longitude, s = i.State, t = i.Tooltip })
-                .Cast<object>().ToList()
-            : new List<object>();
-        return JsonSerializer.Serialize(new { dark = _settings.DarkTheme, items });
-    }
-
     // ---------------------------------------------------------------- contee USA (diploma MARAC USA-CA)
 
     /// <summary>Il log è cambiato: la mappa delle contee va ridisegnata.</summary>
@@ -561,6 +456,40 @@ public partial class MainViewModel : ObservableObject
     }
 
     private static int BandOrder(string band) => Array.IndexOf(BandPlan.AllBands, band) is var i and >= 0 ? i : 99;
+
+    // ---------------------------------------------------------------- prefetture giapponesi e province cinesi
+
+    /// <summary>Dati per regions.html: "jp" prefetture giapponesi (WAJA), "cn" province cinesi.</summary>
+    public string BuildRegionJson(string set)
+    {
+        var china = set == "cn";
+        var entities = china ? new[] { "China", "Taiwan", "Pratas Island", "Hong Kong", "Macao" } : new[] { "Japan" };
+        var qsos = _workedEntries.Where(e => entities.Contains(e.DxccName)).ToList();
+        var placed = qsos.Select(e => (e, r: china
+                ? ChinaProvinces.Of(e, e.DxccName)
+                : JapanPrefectures.Of(e) is { } jp ? (jp, false) : ((string, bool)?)null))
+            .ToList();
+        var regions = placed.Where(p => p.r is not null).GroupBy(p => p.r!.Value.Item1)
+            .Select(g => new
+            {
+                id = g.Key,
+                qsos = g.Count(),
+                guess = g.All(p => p.r!.Value.Item2),   // solo dal nominativo: provincia stimata
+                bands = string.Join(" ", g.Select(p => p.e.Band).Distinct().OrderBy(BandOrder)),
+                modes = string.Join(" ", g.Select(p => p.e.Mode).Distinct().OrderBy(m => m)),
+                calls = string.Join(", ", g.Select(p => p.e.Callsign).Distinct().Take(8)),
+            });
+        var unknown = placed.Where(p => p.r is null).Select(p => p.e.Callsign).Distinct().OrderBy(c => c).ToList();
+        return JsonSerializer.Serialize(new
+        {
+            dark = _settings.DarkTheme,
+            set,
+            logLoaded = _workedEntries.Count > 0,
+            qsos = qsos.Count,
+            unknown,
+            regions,
+        });
+    }
 
     // Filtri della scheda "On Air"
     public string[] SpotBands { get; }

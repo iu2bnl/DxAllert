@@ -1024,149 +1024,20 @@
                 </Grid>
             </TabItem>
 
-            <!-- DIPLOMI dell'elenco VA3RJ calcolati dal log ADIF -->
-            <TabItem Header="Diplomi">
-                <DockPanel>
-                    <WrapPanel DockPanel.Dock="Top" Margin="16,8">
-                        <ComboBox ItemsSource="{Binding AwardGroups}" SelectedIndex="{Binding SelectedAwardGroup}" Width="170" Margin="0,0,8,4" />
-                        <ComboBox ItemsSource="{Binding AwardModes}" SelectedIndex="{Binding SelectedAwardMode}" Width="120" Margin="0,0,8,4"
-                                  ToolTip="Conta solo i QSO in questo modo (per le endorsement di modo)" />
-                        <ComboBox ItemsSource="{Binding AwardBands}" SelectedIndex="{Binding SelectedAwardBand}" Width="130" Margin="0,0,8,4"
-                                  ToolTip="Conta solo i QSO su questa banda (per i diplomi monobanda)" />
-                        <ComboBox ItemsSource="{Binding AwardConfirmations}" SelectedIndex="{Binding SelectedAwardConfirmation}" Width="230" Margin="0,0,8,4"
-                                  ToolTip="Molti diplomi vogliono i QSO confermati: scegli quali conferme contare" />
-                        <TextBlock Text="Cerca:" VerticalAlignment="Center" Margin="8,0,6,4" Foreground="{DynamicResource Muted}" />
-                        <TextBox Text="{Binding AwardFilter, UpdateSourceTrigger=PropertyChanged}" Width="160" Margin="0,0,0,4" />
-                        <TextBlock Text="{Binding AwardSummary}" VerticalAlignment="Center" Margin="12,0,0,4" Foreground="{DynamicResource Muted}" />
-                    </WrapPanel>
-                    <TextBlock DockPanel.Dock="Bottom" Margin="16,4,16,8" TextWrapping="Wrap" Foreground="{DynamicResource Muted}" FontSize="12"
-                               Text="Diplomi dell'elenco di VA3RJ (qsl.net/va3rj) calcolati dal log, più quelli di cui Log4OM ha scritto i riferimenti nel file ADIF (gruppo «Da Log4OM»: province, castelli, parchi… compaiono qui se li attivi in Log4OM). Le regole sono riassunte: prima di fare domanda leggi il regolamento dell'ente." />
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="5" />
-                            <ColumnDefinition Width="560" MinWidth="320" MaxWidth="900" />
-                        </Grid.ColumnDefinitions>
-                        <DataGrid Grid.Column="0" ItemsSource="{Binding Awards}" SelectedItem="{Binding SelectedAward}" Style="{StaticResource ClusterGrid}">
-                            <DataGrid.RowStyle>
-                                <Style TargetType="DataGridRow">
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsDone}" Value="True">
-                                            <Setter Property="FontWeight" Value="Bold" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </DataGrid.RowStyle>
-                            <DataGrid.Columns>
-                                <DataGridTextColumn Header="GRUPPO" Binding="{Binding Group}" Width="140" />
-                                <DataGridTextColumn Header="DIPLOMA" Binding="{Binding Name}" Width="280" />
-                                <DataGridTextColumn Header="ENTE" Binding="{Binding Sponsor}" Width="170" />
-                                <DataGridTemplateColumn Header="AVANZAMENTO" SortMemberPath="Percent" Width="200">
-                                    <DataGridTemplateColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <Grid>
-                                                <Border Height="16" Background="{DynamicResource Line}" CornerRadius="3" />
-                                                <Border Height="16" Background="#1FA055" CornerRadius="3" RenderTransformOrigin="0,0.5">
-                                                    <Border.RenderTransform><ScaleTransform ScaleX="{Binding Fraction, Mode=OneWay}" /></Border.RenderTransform>
-                                                </Border>
-                                                <TextBlock Text="{Binding ProgressText}" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="11"
-                                                           Foreground="{DynamicResource Fg}" FontWeight="SemiBold" />
-                                            </Grid>
-                                        </DataTemplate>
-                                    </DataGridTemplateColumn.CellTemplate>
-                                </DataGridTemplateColumn>
-                                <DataGridTextColumn Header="CLASSE RAGGIUNTA" Binding="{Binding ReachedText}" Width="150" />
-                                <DataGridTextColumn Header="PROSSIMA" Binding="{Binding NextText}" Width="230" />
-                            </DataGrid.Columns>
-                        </DataGrid>
-                        <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" Background="{DynamicResource Line}" />
-                        <DockPanel Grid.Column="2" DataContext="{Binding SelectedAward}" Background="{DynamicResource Panel}">
-                            <Border DockPanel.Dock="Top" Padding="14,10,14,6">
-                                <StackPanel>
-                                    <DockPanel>
-                                        <Button DockPanel.Dock="Right" Content="Apri il regolamento" Click="OpenAwardRules_Click" VerticalAlignment="Top"
-                                                Visibility="{Binding HasUrl, Converter={StaticResource BoolToVis}}" />
-                                        <StackPanel>
-                                            <TextBlock Text="{Binding Name}" FontSize="17" FontWeight="Bold" TextWrapping="Wrap" />
-                                            <TextBlock Foreground="{DynamicResource Muted}">
-                                                <Run Text="{Binding Sponsor, Mode=OneWay}" /><Run Text="  ·  " /><Run Text="{Binding Group, Mode=OneWay}" />
-                                            </TextBlock>
-                                        </StackPanel>
-                                    </DockPanel>
-                                    <TextBlock Text="{Binding Rules}" TextWrapping="Wrap" Margin="0,6,0,0" />
-                                    <TextBlock Text="{Binding Notes}" TextWrapping="Wrap" Margin="0,4,0,0" Foreground="#E08A00"
-                                               Visibility="{Binding HasNotes, Converter={StaticResource BoolToVis}}" />
-                                    <TextBlock Margin="0,8,0,2" FontWeight="SemiBold">
-                                        <Run Text="Avanzamento: " /><Run Text="{Binding ProgressText, Mode=OneWay}" /><Run Text="  ·  prossima: " /><Run Text="{Binding NextText, Mode=OneWay}" />
-                                    </TextBlock>
-                                    <ItemsControl ItemsSource="{Binding Levels}" Focusable="False">
-                                        <ItemsControl.ItemsPanel>
-                                            <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
-                                        </ItemsControl.ItemsPanel>
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Border BorderBrush="{Binding Color}" BorderThickness="1" CornerRadius="10" Padding="8,1" Margin="0,3,6,0">
-                                                    <TextBlock FontSize="12">
-                                                        <Run Text="{Binding Mark, Mode=OneWay}" Foreground="{Binding Color, Mode=OneWay}" FontWeight="Bold" />
-                                                        <Run Text="{Binding Label, Mode=OneWay}" FontWeight="SemiBold" />
-                                                        <Run Text="{Binding Requirement, Mode=OneWay}" Foreground="{DynamicResource Muted}" />
-                                                    </TextBlock>
-                                                </Border>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                    <!-- Diplomi a più bande: avanzamento banda per banda -->
-                                    <ItemsControl ItemsSource="{Binding Bands}" Focusable="False" Margin="0,8,0,0"
-                                                  Visibility="{Binding HasBands, Converter={StaticResource BoolToVis}}">
-                                        <ItemsControl.ItemTemplate>
-                                            <DataTemplate>
-                                                <Grid Margin="0,1">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="50" />
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="80" />
-                                                    </Grid.ColumnDefinitions>
-                                                    <TextBlock Text="{Binding Band}" FontWeight="SemiBold" />
-                                                    <Border Grid.Column="1" Height="12" Background="{DynamicResource Line}" CornerRadius="3" />
-                                                    <Border Grid.Column="1" Height="12" Background="#1FA055" CornerRadius="3" RenderTransformOrigin="0,0.5">
-                                                        <Border.RenderTransform><ScaleTransform ScaleX="{Binding Fraction, Mode=OneWay}" /></Border.RenderTransform>
-                                                    </Border>
-                                                    <TextBlock Grid.Column="2" Text="{Binding Text}" HorizontalAlignment="Right" />
-                                                </Grid>
-                                            </DataTemplate>
-                                        </ItemsControl.ItemTemplate>
-                                    </ItemsControl>
-                                </StackPanel>
-                            </Border>
-                            <wv2:WebView2 x:Name="AwardMap" DockPanel.Dock="Top" Height="260" Loaded="AwardMap_Loaded"
-                                          Visibility="{Binding HasMap, Converter={StaticResource BoolToVis}}" />
-                            <TextBlock DockPanel.Dock="Top" Text="{Binding ItemsTitle}" Margin="14,8,14,4" FontWeight="SemiBold" TextWrapping="Wrap" />
-                            <ScrollViewer VerticalScrollBarVisibility="Visible" Padding="10,0,10,10">
-                                <ItemsControl ItemsSource="{Binding Items}" Focusable="False">
-                                    <ItemsControl.ItemsPanel>
-                                        <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
-                                    </ItemsControl.ItemsPanel>
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border CornerRadius="4" Padding="6,1" Margin="3" Background="{Binding Color}" ToolTip="{Binding Tooltip}">
-                                                <Border.Style>
-                                                    <Style TargetType="Border">
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsMissing}" Value="True">
-                                                                <Setter Property="Opacity" Value="0.55" />
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Border.Style>
-                                                <TextBlock Text="{Binding Label}" Foreground="White" FontSize="12" />
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </ScrollViewer>
-                        </DockPanel>
-                    </Grid>
-                </DockPanel>
+            <!-- PREFETTURE GIAPPONESI (WAJA) e PROVINCE CINESI dal log ADIF -->
+            <TabItem Header="Giappone">
+                <Grid>
+                    <TextBlock x:Name="JapanMessage" Text="Caricamento della mappa…" HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Foreground="{DynamicResource Muted}" TextWrapping="Wrap" MaxWidth="520" TextAlignment="Center" />
+                    <wv2:WebView2 x:Name="JapanMap" Loaded="JapanMap_Loaded" />
+                </Grid>
+            </TabItem>
+            <TabItem Header="Cina">
+                <Grid>
+                    <TextBlock x:Name="ChinaMessage" Text="Caricamento della mappa…" HorizontalAlignment="Center" VerticalAlignment="Center"
+                               Foreground="{DynamicResource Muted}" TextWrapping="Wrap" MaxWidth="520" TextAlignment="Center" />
+                    <wv2:WebView2 x:Name="ChinaMap" Loaded="ChinaMap_Loaded" />
+                </Grid>
             </TabItem>
 
             <!-- MAPPA -->
@@ -1266,7 +1137,7 @@
 
                         <TextBlock Text="Aggiornamenti" Style="{StaticResource SectionTitle}" />
                         <TextBlock Foreground="{DynamicResource Muted}" Margin="0,4,0,4" TextWrapping="Wrap"
-                                   Text="DXAllert controlla le versioni pubblicate su GitHub (github.com/mattianobis/DxAllert, sezione Releases). Se ce n'è una nuova compare una barra verde in alto: con «Aggiorna ora» scarica l'installer, ne verifica l'impronta, chiude il programma, installa e lo riapre." />
+                                   Text="DXAllert controlla le versioni pubblicate su GitHub (github.com/iu2bnl/DxAllert, sezione Releases). Se ce n'è una nuova compare una barra verde in alto: con «Aggiorna ora» scarica l'installer, ne verifica l'impronta, chiude il programma, installa e lo riapre." />
                         <CheckBox Content="Controlla gli aggiornamenti all'avvio e una volta al giorno" IsChecked="{Binding EditCheckUpdates}" />
                         <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
                             <Button Content="Controlla adesso" Command="{Binding CheckUpdatesNowCommand}" />

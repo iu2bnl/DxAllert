@@ -10,13 +10,13 @@ namespace DXAllert.Tests;
 /// <summary>Aggiornamenti dalle Release di GitHub.</summary>
 public class UpdateTests
 {
-    private const string Url = "https://github.com/mattianobis/DxAllert/releases/download/v1.1.3/DXAllert1.1.3.exe";
+    private const string Url = "https://github.com/iu2bnl/DxAllert/releases/download/v1.1.3/DXAllert1.1.3.exe";
 
     private static string Release(string tag = "v1.1.3", string name = "DXAllert1.1.3.exe", string url = Url,
         string digest = "sha256:ABCDEF", bool prerelease = false, long size = 123) => $$"""
-        { "tag_name": "{{tag}}", "html_url": "https://github.com/mattianobis/DxAllert/releases/tag/{{tag}}",
+        { "tag_name": "{{tag}}", "html_url": "https://github.com/iu2bnl/DxAllert/releases/tag/{{tag}}",
           "draft": false, "prerelease": {{(prerelease ? "true" : "false")}}, "body": "Novità",
-          "assets": [ { "name": "note.txt", "browser_download_url": "https://github.com/mattianobis/DxAllert/releases/download/x/note.txt" },
+          "assets": [ { "name": "note.txt", "browser_download_url": "https://github.com/iu2bnl/DxAllert/releases/download/x/note.txt" },
                       { "name": "{{name}}", "browser_download_url": "{{url}}", "size": {{size}}, "digest": "{{digest}}" } ] }
         """;
 
@@ -41,7 +41,7 @@ public class UpdateTests
     public void IgnoresPrereleasesForeignHostsAndOtherFiles()
     {
         Assert.Null(ReleaseParser.Parse(Release(prerelease: true)));
-        Assert.Null(ReleaseParser.Parse(Release(url: "https://example.com/mattianobis/DxAllert/releases/download/v1.1.3/DXAllert1.1.3.exe")));
+        Assert.Null(ReleaseParser.Parse(Release(url: "https://example.com/iu2bnl/DxAllert/releases/download/v1.1.3/DXAllert1.1.3.exe")));
         Assert.Null(ReleaseParser.Parse(Release(url: "https://github.com/altro/DxAllert/releases/download/v1.1.3/DXAllert1.1.3.exe")));
         Assert.Null(ReleaseParser.Parse(Release(name: "setup.exe")));
     }

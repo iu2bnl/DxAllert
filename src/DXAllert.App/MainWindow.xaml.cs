@@ -46,9 +46,8 @@ public partial class MainWindow : Window
         DataContext = vm;
         vm.MapDataChanged += json => { if (_mapReady) _ = RunMapScript($"dxUpdate({json})"); };
         vm.QrzPasswordSaved += () => QrzPassword.Clear();
-        vm.CountyDataChanged += () => Dispatcher.BeginInvoke(PushCounties);
-        vm.ThemeChanged += _ => { PushCounties(); PushAwardMap(); };
-        vm.AwardMapChanged += () => Dispatcher.BeginInvoke(PushAwardMap);
+        vm.CountyDataChanged += () => Dispatcher.BeginInvoke(() => { PushCounties(); PushRegions(); });
+        vm.ThemeChanged += _ => { PushCounties(); PushRegions(); };
         if (vm.NeedsSetup) Tabs.SelectedItem = SettingsTab;
 
         _miniMaps = new[]
@@ -103,11 +102,6 @@ public partial class MainWindow : Window
     private void OpenContestRules_Click(object sender, RoutedEventArgs e)
     {
         if ((sender as FrameworkElement)?.DataContext is ContestRow { HasUrl: true } row) MainViewModel.Shell(row.Url);
-    }
-
-    private void OpenAwardRules_Click(object sender, RoutedEventArgs e)
-    {
-        if (_vm.SelectedAward is { HasUrl: true } a) MainViewModel.Shell(a.Url);
     }
 
     private void OpenQrz_Click(object sender, RoutedEventArgs e)
@@ -187,48 +181,68 @@ public partial class MainWindow : Window
         }
     }
 
-    // ---------------------------------------------------------------- diplomi
+    // ---------------------------------------------------------------- prefetture giapponesi e province cinesi
 
-    private bool _awardMapStarted, _awardMapReady;
+    private bool _japanStarted, _chinaStarted, _japanReady, _chinaReady;
 
-    private async void AwardMap_Loaded(object sender, RoutedEventArgs e)
+    private void JapanMap_Loaded(object sender, RoutedEventArgs e)
     {
-        if (_awardMapStarted) return;
-        _awardMapStarted = true;
+        if (_japanStarted) return;
+        _japanStarted = true;
+        StartRegionMap(JapanMap, JapanMessage, "WebView2Japan", "jp", () => _japanReady = true);
+    }
+
+    private void ChinaMap_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (_chinaStarted) return;
+        _chinaStarted = true;
+        StartRegionMap(ChinaMap, ChinaMessage, "WebView2China", "cn", () => _chinaReady = true);
+    }
+
+    // Come la mappa delle contee: si inizializza la prima volta che la scheda viene aperta.
+    private async void StartRegionMap(WebView2 view, System.Windows.Controls.TextBlock message, string profile, string set, Action ready)
+    {
         try
         {
-            var env = await CoreWebView2Environment.CreateAsync(null, Path.Combine(AppPaths.DataDir, "WebView2Awards"));
-            await AwardMap.EnsureCoreWebView2Async(env);
-            var core = AwardMap.CoreWebView2;
+            var env = await CoreWebView2Environment.CreateAsync(null, Path.Combine(AppPaths.DataDir, profile));
+            await view.EnsureCoreWebView2Async(env);
+            var core = view.CoreWebView2;
             ServeMapAssets(core);
             core.Settings.AreDevToolsEnabled = false;
             core.Settings.AreDefaultContextMenusEnabled = false;
             core.Settings.IsStatusBarEnabled = false;
+            core.NewWindowRequested += (_, args) => { args.Handled = true; MainViewModel.Shell(args.Uri); };
             core.NavigationStarting += (_, args) =>
             {
                 if (new Uri(args.Uri).Host == MapHost) return;
                 args.Cancel = true;
+                MainViewModel.Shell(args.Uri);
             };
             core.NavigationCompleted += (_, args) =>
             {
                 if (!args.IsSuccess) return;
-                _awardMapReady = true;
-                PushAwardMap();
+                ready();
+                message.Visibility = Visibility.Collapsed;
+                PushRegions();
             };
-            core.Navigate($"https://{MapHost}/awards.html");
+            core.Navigate($"https://{MapHost}/regions.html?set={set}");
         }
         catch (Exception ex)
         {
-            Log.Error("Mappa dei diplomi non disponibile", ex);
-            AwardMap.Visibility = Visibility.Collapsed;
+            Log.Error($"Mappa {set} non disponibile", ex);
+            view.Visibility = Visibility.Collapsed;
+            message.Text = "La mappa non è disponibile: manca il componente Microsoft Edge WebView2 Runtime.";
         }
     }
 
-    private async void PushAwardMap()
+    private async void PushRegions()
     {
-        if (!_awardMapReady) return;
-        try { await AwardMap.ExecuteScriptAsync($"awardUpdate({_vm.BuildAwardMapJson()})"); }
-        catch (Exception ex) { Log.Warn($"Mappa diplomi: {ex.Message}"); }
+        try
+        {
+            if (_japanReady) await JapanMap.ExecuteScriptAsync($"regionUpdate({_vm.BuildRegionJson("jp")})");
+            if (_chinaReady) await ChinaMap.ExecuteScriptAsync($"regionUpdate({_vm.BuildRegionJson("cn")})");
+        }
+        catch (Exception ex) { Log.Warn($"Mappa prefetture/province: {ex.Message}"); }
     }
 
     private async void PushCounties()

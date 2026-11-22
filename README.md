@@ -31,9 +31,8 @@ reale (spot dal DX cluster) e quelle pianificate.
 - **Contee USA**: mappa delle contee degli Stati Uniti lavorate secondo il log ADIF importato, per
   il diploma USA-CA di MARAC (marac.org): totale, prossima classe (USA 500, 1000, …, 3077),
   avanzamento per stato, contee del log non riconosciute e città indipendenti.
-- **Diplomi**: avanzamento, dal log ADIF, dei diplomi dell'elenco di VA3RJ che si possono calcolare
-  da un log (paesi DXCC e WAE, continenti, stazioni e prefissi di un paese, isole IOTA), con classi,
-  bande, voci collegate e mancanti e mappa dei paesi.
+- **Giappone** e **Cina**: mappe delle prefetture giapponesi (diploma WAJA della JARL) e delle province
+  cinesi (31 province e regioni più Taiwan, Hong Kong e Macao) lavorate secondo il log ADIF.
 - **QRZ.com**: scheda del nominativo selezionato nel riquadro a destra, ridimensionabile.
 - **Log ADIF**: importando il proprio log, la colonna "Già collegata" indica nominativi ed
   entità DXCC già fatti, con banda e modo.
@@ -137,6 +136,7 @@ La disinstallazione non cancella questa cartella.
 | K0SWE dxcc-json | `Assets\dxcc.csv` (ricavato una volta) | paese di ciascuna entità, per la bandiera; licenza Apache 2.0 in `Assets\licenses` |
 | flagcdn.com | `Assets\flags` | bandiere (pubblico dominio) |
 | Natural Earth | `Assets\map\countries.js` (ricavato una volta, 1:50m) | confini e nomi italiani degli stati sulla mappa (pubblico dominio) |
+| Natural Earth admin-1 | `Assets\map\japan.js`, `Assets\map\china.js` (ricavati una volta, 1:10m) | confini di prefetture giapponesi e province cinesi (pubblico dominio) |
 | us-atlas (US Census Bureau) | `Assets\map\us-counties.js` | confini delle contee USA (licenza ISC) |
 
 Escluse: **DXMaps** (i termini d'uso vietano l'uso dei dati in programmi) e **DXNews**
@@ -209,42 +209,26 @@ fanno parte del diploma.
   Miami-Dade, Shannon → Oglala Lakota). Le voci che non corrispondono a nessuna contea sono
   elencate nella scheda.
 
-## Diplomi
+## Prefetture giapponesi e province cinesi
 
-La scheda calcola dal log importato l'avanzamento di 38 diplomi dell'elenco
-[qsl.net/va3rj/awards_dx.html](https://www.qsl.net/va3rj/awards_dx.html), con le regole lette sulle
-pagine degli enti (novembre 2026): DXCC, 5 e 9 bande ed Elite della WIA, 101 Países, DX 100/200/300,
-CT DX 100, EADX100, Toplist ARI, WNH/WSH, Formula I, WAE, WA EU, The Europe Award, Balkan, C.D.M.,
-Euro Countries, WANC, Zone 40, Alpine Country, WAC, 5BWAC, CCC, ADXA, W.A.A.C., WACS, TPA, IOTA,
-W-100-I, WAOE 100, W 100 OM, LA 100, YV 100/200/300, ZP 100-500, EU-PX-A, Prefixes-SP, CT-WPX.
+**Giappone (WAJA).** La prefettura di un QSO viene dal campo `STATE` del log, che per il Giappone usa la
+numerazione JARL (01 Hokkaido … 10 Tokyo … 47 Okinawa), poi dal riferimento JCC scritto da Log4OM (le prime
+due cifre sono la prefettura), poi dal nominativo solo per il distretto 8 (Hokkaido). I QSO senza nessuno di
+questi dati compaiono nell'elenco «Prefettura non nota».
 
-- Entità, continenti e paesi WAE (Sicilia, Shetland, Bear Island, 4U1V, Turchia europea) vengono
-  dal nominativo con il cty.dat; date (`QSO_DATE`), conferme (`QSL_RCVD`, `LOTW_QSL_RCVD`,
-  `EQSL_QSL_RCVD`) e `IOTA` dal file ADIF. I log importati prima della versione 1.1.2 vanno
-  importati di nuovo per avere date, conferme e IOTA.
-- I filtri limitano il conteggio a un modo (CW, fonia, digitali), a una banda o ai QSO confermati.
-- Gli altri diplomi dell'elenco chiedono riferimenti che un log non contiene (castelli, parchi,
-  comuni, province, fari…) oppure valevano solo in un periodo già passato.
-- Le regole nella scheda sono riassunte: prima di fare domanda va letto il regolamento dell'ente.
-
-**Diplomi da Log4OM.** Log4OM scrive in ogni QSO i riferimenti dei diplomi che segue (campo
-`APP_L4ONG_QSO_AWARD_REFERENCES`, per esempio WAIP, WCA, WAS, WAZ, POTA, JCC). DXAllert mostra un
-diploma per ogni codice presente nel file (gruppo «Da Log4OM») con i riferimenti collegati e, per
-quelli più noti, il totale. Per vedere un diploma in più basta attivarlo in Log4OM, esportare di nuovo
-il log e reimportarlo.
-
-I diplomi di hamlog.online per eventi speciali (oltre mille, quasi tutti a tempo) non si calcolano dal
-proprio log: hamlog li verifica sui log caricati dalle stazioni speciali, cercando il nominativo nella
-pagina del diploma.
+**Cina.** La provincia viene dal campo `STATE` o dai riferimenti WAPC/CNPA di Log4OM; Taiwan, Hong Kong e
+Macao dall'entità DXCC. Altrimenti è ricavata dal nominativo (cifra del distretto e prima lettera del
+suffisso, per esempio BG7I… = Guangdong) ed è segnata come stima. Lo schema dei nominativi e le regole di
+WAPC e CNPA non sono stati verificati su un documento ufficiale.
 
 ## Aggiornamenti automatici
 
 All'avvio (dopo 20 secondi) e poi una volta al giorno DXAllert legge l'ultima release pubblicata
-su GitHub (`api.github.com/repos/mattianobis/DxAllert/releases/latest`). Se è più nuova compare
+su GitHub (`api.github.com/repos/iu2bnl/DxAllert/releases/latest`). Se è più nuova compare
 una barra verde in alto con «Aggiorna ora», «Novità», «Più tardi» e «Salta questa versione».
 
 «Aggiorna ora» scarica l'installer `DXAllert<versione>.exe` (solo da
-`github.com/mattianobis/DxAllert/releases/download/…`) e controlla dimensione e impronta SHA-256
+`github.com/iu2bnl/DxAllert/releases/download/…`) e controlla dimensione e impronta SHA-256
 indicate da GitHub. Poi chiude il programma e lancia l'installer in modalità silenziosa
 (`/SILENT /AUTOUPDATE=1`, per tutti gli utenti se DXAllert è in Programmi). A fine installazione
 l'installer riapre DXAllert. Il controllo si disattiva in Impostazioni > Aggiornamenti.

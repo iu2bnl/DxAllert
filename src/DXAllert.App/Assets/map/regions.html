@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>DXAllert – Prefetture e province</title>
+<link rel="stylesheet" href="leaflet.css">
+<style>
+  :root { --sea: #a9cfe0; --land: #f4f1ea; --none: #ebe6db; --cborder: #c9c1b3; --sborder: #8a8174; --done: #2e9e5b; --guess: #7cc49a;
+          --panel: #ffffff; --fg: #1f2328; --muted: #5f6b76; --line: #dde2e7; --warn: #b45309; }
+  body.dark { --sea: #0f1b26; --land: #222a33; --none: #2c3640; --cborder: #3c4753; --sborder: #8a96a3; --done: #2fae66; --guess: #24704a;
+              --panel: #1e242b; --fg: #e6e9ee; --muted: #9aa5b1; --line: #37414d; --warn: #f0b45a; }
+  html, body { margin: 0; height: 100%; font: 13px "Segoe UI", sans-serif; color: var(--fg); background: var(--panel); }
+  #wrap { display: flex; height: 100%; }
+  #map { flex: 1; background: var(--sea); }
+  #side { width: 310px; overflow-y: auto; border-left: 1px solid var(--line); padding: 14px 16px; box-sizing: border-box; }
+  h1 { font-size: 17px; margin: 0; }
+  h2 { font-size: 13px; margin: 18px 0 6px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); }
+  .muted { color: var(--muted); }
+  .total { margin-top: 12px; }
+  .total b { font-size: 30px; }
+  .bar { height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; margin: 6px 0 4px; }
+  .bar > i { display: block; height: 100%; background: var(--done); }
+  .legend div { margin: 3px 0; }
+  .legend i { display: inline-block; width: 13px; height: 13px; border-radius: 2px; margin-right: 7px; vertical-align: -2px; border: 1px solid var(--cborder); }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  td { padding: 3px 4px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  td.id { color: var(--muted); width: 26px; font-variant-numeric: tabular-nums; }
+  td.n { text-align: right; white-space: nowrap; }
+  tr.r { cursor: pointer; }
+  tr.r:hover td { background: var(--line); }
+  tr.done td:nth-child(2) { color: var(--done); font-weight: 600; }
+  .warn { color: var(--warn); }
+  .note { font-size: 11px; margin-top: 16px; }
+  .leaflet-tooltip { font: 12px "Segoe UI", sans-serif; }
+</style>
+<script src="leaflet.js"></script>
+<script src="countries.js"></script>
+<script src="japan.js"></script>
+<script src="china.js"></script>
+</head>
+<body>
+<div id="wrap">
+  <div id="map"></div>
+  <div id="side"><p class="muted">Caricamento…</p></div>
+</div>
+<script>
+  // ?set=jp: prefetture giapponesi (WAJA, JARL) · ?set=cn: province cinesi (31 + Taiwan, Hong Kong, Macao)
+  const SET = new URLSearchParams(location.search).get('set') === 'cn' ? 'cn' : 'jp';
+  const CN = SET === 'cn';
+  const REGIONS = (CN ? window.CN_PROVS : window.JP_PREFS) || [];
+  const label = r => CN ? r.it : r.n;
+  const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const css = n => getComputedStyle(document.body).getPropertyValue(n).trim();
+
+  const map = L.map('map', { minZoom: 2, maxZoom: 9, zoomSnap: 0.25 });
+  map.attributionControl.setPrefix(false).addAttribution('Confini: Natural Earth');
+  if (CN) map.fitBounds([[18, 73], [54, 135]]); else map.fitBounds([[24, 123], [46, 146]]);
+  const canvas = L.canvas({ padding: 0.5 });
+  const world = L.geoJSON({ type: 'FeatureCollection', features: (window.NE_COUNTRIES || []).map(c => ({ type: 'Feature', properties: {}, geometry: c.g })) },
+    { renderer: canvas, interactive: false }).addTo(map);
+
+  const byId = new Map(REGIONS.map(r => [r.id, Object.assign(r, { worked: null })]));
+  const layer = L.geoJSON({ type: 'FeatureCollection', features: REGIONS.map(r => ({ type: 'Feature', properties: { id: r.id }, geometry: r.g })) }, {
+    renderer: canvas,
+    onEachFeature: (f, l) => l.bindTooltip(() => tip(byId.get(f.properties.id)), { sticky: true })
+  }).addTo(map);
+
+  function tip(r) {
+    const head = '<b>' + esc(label(r)) + '</b>' + (CN ? ' (' + r.id + ')' : ' · JARL ' + r.id);
+    if (!r.worked) return head + '<br>Non ancora lavorata';
+    const w = r.worked;
+    return head + '<br><b style="color:' + css('--done') + '">Lavorata</b> · ' + w.qsos + ' QSO' +
+           (w.guess ? ' <span style="opacity:.8">(ricavata dal nominativo)</span>' : '') +
+           '<br>' + esc(w.bands) + ' · ' + esc(w.modes) + '<br>' + esc(w.calls);
+  }
+
+  function restyle() {
+    world.setStyle({ weight: 0.6, color: css('--cborder'), fillColor: css('--land'), fillOpacity: 1 });
+    layer.setStyle(f => {
+      const r = byId.get(f.properties.id);
+      return { weight: 0.8, color: css('--sborder'), fillOpacity: 1,
+               fillColor: !r.worked ? css('--none') : r.worked.guess ? css('--guess') : css('--done') };
+    });
+  }
+
+  function zoomTo(id) {
+    const r = byId.get(id);
+    if (r) map.fitBounds(L.geoJSON(r.g).getBounds(), { padding: [30, 30], maxZoom: 7 });
+  }
+
+  window.regionUpdate = function (data) {
+    document.body.classList.toggle('dark', !!data.dark);
+    for (const r of REGIONS) r.worked = null;
+    for (const w of data.regions || []) { const r = byId.get(w.id); if (r) r.worked = w; }
+    restyle();
+    renderSide(data);
+  };
+
+  function renderSide(data) {
+    const all = REGIONS.length, done = REGIONS.filter(r => r.worked).length, pct = all ? 100 * done / all : 0;
+    let h = CN
+      ? '<h1>Province cinesi</h1><div class="muted">WAPC / CNPA: 31 province e regioni, più Taiwan, Hong Kong e Macao</div>'
+      : '<h1>Prefetture giapponesi</h1><div class="muted">Diploma WAJA della JARL: tutte le 47 prefetture</div>';
+    if (!data.logLoaded) h += '<p class="warn">Nessun log importato. Importa il tuo file ADIF in Impostazioni &gt; Log ADIF.</p>';
+    h += '<div class="total"><b>' + done + '</b> <span class="muted">su ' + all + ' · ' + pct.toFixed(1).replace('.', ',') + '%</span></div>' +
+         '<div class="bar"><i style="width:' + pct + '%"></i></div>';
+    if (CN) {
+      const main = REGIONS.filter(r => r.worked && !['TW', 'HK', 'MO'].includes(r.id)).length;
+      h += '<div>Cina continentale: <b>' + main + '</b> su 31</div>';
+    } else {
+      h += '<div>' + (done === all ? '<b>Tutte le prefetture lavorate!</b>' : 'Ne mancano <b>' + (all - done) + '</b>') + '</div>';
+    }
+    h += '<div class="legend" style="margin-top:12px"><div><i style="background:' + css('--done') + '"></i>Lavorata</div>' +
+         (CN ? '<div><i style="background:' + css('--guess') + '"></i>Lavorata, provincia ricavata dal nominativo</div>' : '') +
+         '<div><i style="background:' + css('--none') + '"></i>Da lavorare</div></div>';
+    if (data.logLoaded) {
+      h += '<p class="muted">Nel log: ' + data.qsos + ' QSO con ' + (CN ? 'Cina, Taiwan, Hong Kong e Macao' : 'il Giappone') +
+           (data.unknown.length ? '; <span class="warn">' + data.unknown.length + ' nominativi senza ' + (CN ? 'provincia' : 'prefettura') + '</span>' : '') + '.</p>';
+    }
+    if (data.unknown.length) {
+      h += '<h2>' + (CN ? 'Provincia non nota' : 'Prefettura non nota') + '</h2><div class="muted">' +
+           (CN ? 'Il nominativo non segue lo schema dei distretti e il log non ha il campo STATE.'
+               : 'Il log non ha il campo STATE (numero JARL della prefettura) né un riferimento JCC.') +
+           '</div><div style="margin-top:4px">' + data.unknown.map(esc).join(', ') + '</div>';
+    }
+    h += '<h2>' + (CN ? 'Province' : 'Prefetture') + '</h2><table>' + REGIONS.slice().sort((a, b) => CN ? label(a).localeCompare(label(b)) : a.id.localeCompare(b.id)).map(r =>
+      '<tr class="r' + (r.worked ? ' done' : '') + '" data-id="' + r.id + '"><td class="id">' + r.id + '</td><td>' + esc(label(r)) +
+      '</td><td class="n">' + (r.worked ? r.worked.qsos + ' QSO' + (r.worked.guess ? ' *' : '') : '') + '</td></tr>').join('') + '</table>';
+    h += CN
+      ? '<p class="note muted">La provincia viene dal campo STATE o dai riferimenti WAPC/CNPA di Log4OM; se mancano è ricavata dal nominativo ' +
+        '(cifra del distretto e prima lettera del suffisso) e segnata con *. Lo schema dei nominativi e le regole di WAPC e CNPA non sono stati ' +
+        'verificati su un documento ufficiale: controlla sul regolamento quali province servono e se valgono Taiwan, Hong Kong e Macao.</p>'
+      : '<p class="note muted">La prefettura viene dal campo STATE del log (numerazione JARL: 01 Hokkaido … 10 Tokyo … 47 Okinawa), ' +
+        'dal riferimento JCC di Log4OM o, per il distretto 8, dal nominativo (solo Hokkaido).</p>';
+    const side = document.getElementById('side');
+    side.innerHTML = h;
+    side.querySelectorAll('tr.r').forEach(tr => tr.addEventListener('click', () => zoomTo(tr.dataset.id)));
+  }
+
+  restyle();
+  renderSide({ logLoaded: false, qsos: 0, unknown: [], regions: [] });
+</script>
+</body>
+</html>
