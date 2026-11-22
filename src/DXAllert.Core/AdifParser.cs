@@ -53,9 +53,27 @@ public static class AdifParser
                 if (state.Length == 0) state = county[..comma].Trim().ToUpperInvariant();
                 county = county[(comma + 1)..].Trim();
             }
+            // Log4OM: "FL,OSCEOLA // Osceola": dopo "//" ripete il nome, si tiene la prima parte.
+            var slashes = county.IndexOf("//", StringComparison.Ordinal);
+            if (slashes >= 0) county = county[..slashes].Trim();
 
-            results.Add(new WorkedEntry(call, band, mode, country, state, county));
+            DateTime? date = DateTime.TryParseExact(fields.GetValueOrDefault("QSO_DATE", ""), "yyyyMMdd",
+                CultureInfo.InvariantCulture, DateTimeStyles.None, out var d) ? d : null;
+            var qsl = QslFlags.None;
+            if (IsYes(fields, "QSL_RCVD")) qsl |= QslFlags.Card;
+            if (IsYes(fields, "LOTW_QSL_RCVD")) qsl |= QslFlags.Lotw;
+            if (IsYes(fields, "EQSL_QSL_RCVD")) qsl |= QslFlags.Eqsl;
+            var cq = int.TryParse(fields.GetValueOrDefault("CQZ", ""), out var z1) ? z1 : 0;
+            var itu = int.TryParse(fields.GetValueOrDefault("ITUZ", ""), out var z2) ? z2 : 0;
+            var iota = fields.GetValueOrDefault("IOTA", "").ToUpperInvariant();
+            var grid = fields.GetValueOrDefault("GRIDSQUARE", "").ToUpperInvariant();
+
+            results.Add(new WorkedEntry(call, band, mode, country, state, county, date, qsl, cq, itu, iota, grid));
         }
         return results;
     }
+
+    // "Y" (ricevuta) o "V" (verificata) valgono come conferma.
+    private static bool IsYes(Dictionary<string, string> f, string key) =>
+        f.TryGetValue(key, out var v) && v.Length > 0 && (char.ToUpperInvariant(v[0]) is 'Y' or 'V');
 }

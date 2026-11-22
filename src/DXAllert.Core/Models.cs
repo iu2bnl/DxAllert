@@ -68,9 +68,14 @@ public sealed class AppSettings
     public string QrzPasswordProtected { get; set; } = "";
 }
 
-/// <summary>Un QSO del log personale, importato da file ADIF.</summary>
-/// <summary>Un QSO del log ADIF. Per gli Stati Uniti anche stato (STATE) e contea (CNTY, senza lo stato).</summary>
-public sealed record WorkedEntry(string Callsign, string Band, string Mode, string DxccName, string State = "", string County = "");
+/// <summary>Conferme di un QSO: cartolina QSL, LoTW, eQSL.</summary>
+[Flags]
+public enum QslFlags { None = 0, Card = 1, Lotw = 2, Eqsl = 4 }
+
+/// <summary>Un QSO del log ADIF. Per gli Stati Uniti anche stato (STATE) e contea (CNTY, senza lo stato).
+/// Data, conferme, zone CQ/ITU, IOTA e locatore servono ai diplomi.</summary>
+public sealed record WorkedEntry(string Callsign, string Band, string Mode, string DxccName, string State = "", string County = "",
+    DateTime? Date = null, QslFlags Qsl = QslFlags.None, int CqZone = 0, int ItuZone = 0, string Iota = "", string Grid = "");
 
 public interface IDxpeditionSource
 {

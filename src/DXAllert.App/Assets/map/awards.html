@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>DXAllert – Diplomi</title>
+<link rel="stylesheet" href="leaflet.css">
+<style>
+  html, body, #map { height: 100%; margin: 0; }
+  body { font-family: "Segoe UI", sans-serif; font-size: 12px; }
+  #map.leaflet-container { background: #a9cfe0; }
+  body.dark #map.leaflet-container { background: #0f1b26; }
+  .leaflet-tooltip { font: 12px "Segoe UI", sans-serif; }
+  .legend { background: #fff; padding: 4px 8px; border-radius: 6px; box-shadow: 0 1px 4px rgba(0,0,0,.4); line-height: 1.6; }
+  body.dark .legend { background: #262b32; color: #e6e9ee; }
+  .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; }
+</style>
+</head>
+<body>
+<div id="map"></div>
+<script src="leaflet.js"></script>
+<script src="countries.js"></script>
+<script>
+  const map = L.map('map', { worldCopyJump: true, minZoom: 1, maxZoom: 7, attributionControl: false }).setView([25, 10], 1);
+  const canvas = L.canvas({ padding: 0.5 });
+  const landStyle = dark => ({ weight: 0.6, color: dark ? '#56636f' : '#9aa3ab', fillColor: dark ? '#252e37' : '#f4f1ea', fillOpacity: 1 });
+  const land = L.geoJSON({ type: 'FeatureCollection', features: (window.NE_COUNTRIES || []).map(c => ({ type: 'Feature', properties: {}, geometry: c.g })) },
+    { renderer: canvas, interactive: false, style: landStyle(false) }).addTo(map);
+  const dots = L.layerGroup().addTo(map);
+  const COLORS = { done: '#1fa055', partial: '#ffa726', missing: '#9aa3ab' };
+
+  const legend = L.control({ position: 'bottomleft' });
+  legend.onAdd = () => {
+    const d = L.DomUtil.create('div', 'legend');
+    d.innerHTML = '<i style="background:' + COLORS.done + '"></i>Valido<br><i style="background:' + COLORS.partial + '"></i>Collegato, non ancora valido<br>' +
+                  '<i style="background:' + COLORS.missing + '"></i>Da collegare';
+    return d;
+  };
+  legend.addTo(map);
+
+  function esc(s) { return String(s || '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]); }
+
+  // Chiamata dal programma: { dark, items: [{ n, lat, lon, s: 'done'|'partial'|'missing', t }] }
+  function awardUpdate(data) {
+    document.body.classList.toggle('dark', !!data.dark);
+    land.setStyle(landStyle(!!data.dark));
+    dots.clearLayers();
+    const order = { missing: 0, partial: 1, done: 2 };
+    (data.items || []).slice().sort((a, b) => order[a.s] - order[b.s]).forEach(i => {
+      L.circleMarker([i.lat, i.lon], {
+        renderer: canvas, radius: i.s === 'missing' ? 4 : 5.5, weight: 1, color: data.dark ? '#000' : '#fff',
+        fillColor: COLORS[i.s], fillOpacity: i.s === 'missing' ? 0.75 : 1
+      }).bindTooltip('<b>' + esc(i.n) + '</b>' + (i.t ? '<br>' + esc(i.t) : ''), { direction: 'top' }).addTo(dots);
+    });
+  }
+</script>
+</body>
+</html>

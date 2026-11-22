@@ -47,7 +47,8 @@ public partial class MainWindow : Window
         vm.MapDataChanged += json => { if (_mapReady) _ = RunMapScript($"dxUpdate({json})"); };
         vm.QrzPasswordSaved += () => QrzPassword.Clear();
         vm.CountyDataChanged += () => Dispatcher.BeginInvoke(PushCounties);
-        vm.ThemeChanged += _ => PushCounties();
+        vm.ThemeChanged += _ => { PushCounties(); PushAwardMap(); };
+        vm.AwardMapChanged += () => Dispatcher.BeginInvoke(PushAwardMap);
         if (vm.NeedsSetup) Tabs.SelectedItem = SettingsTab;
 
         _miniMaps = new[]
@@ -102,6 +103,11 @@ public partial class MainWindow : Window
     private void OpenContestRules_Click(object sender, RoutedEventArgs e)
     {
         if ((sender as FrameworkElement)?.DataContext is ContestRow { HasUrl: true } row) MainViewModel.Shell(row.Url);
+    }
+
+    private void OpenAwardRules_Click(object sender, RoutedEventArgs e)
+    {
+        if (_vm.SelectedAward is { HasUrl: true } a) MainViewModel.Shell(a.Url);
     }
 
     private void OpenQrz_Click(object sender, RoutedEventArgs e)
@@ -179,6 +185,50 @@ public partial class MainWindow : Window
             CountyMap.Visibility = Visibility.Collapsed;
             CountyMessage.Text = "La mappa non è disponibile: manca il componente Microsoft Edge WebView2 Runtime.";
         }
+    }
+
+    // ---------------------------------------------------------------- diplomi
+
+    private bool _awardMapStarted, _awardMapReady;
+
+    private async void AwardMap_Loaded(object sender, RoutedEventArgs e)
+    {
+        if (_awardMapStarted) return;
+        _awardMapStarted = true;
+        try
+        {
+            var env = await CoreWebView2Environment.CreateAsync(null, Path.Combine(AppPaths.DataDir, "WebView2Awards"));
+            await AwardMap.EnsureCoreWebView2Async(env);
+            var core = AwardMap.CoreWebView2;
+            ServeMapAssets(core);
+            core.Settings.AreDevToolsEnabled = false;
+            core.Settings.AreDefaultContextMenusEnabled = false;
+            core.Settings.IsStatusBarEnabled = false;
+            core.NavigationStarting += (_, args) =>
+            {
+                if (new Uri(args.Uri).Host == MapHost) return;
+                args.Cancel = true;
+            };
+            core.NavigationCompleted += (_, args) =>
+            {
+                if (!args.IsSuccess) return;
+                _awardMapReady = true;
+                PushAwardMap();
+            };
+            core.Navigate($"https://{MapHost}/awards.html");
+        }
+        catch (Exception ex)
+        {
+            Log.Error("Mappa dei diplomi non disponibile", ex);
+            AwardMap.Visibility = Visibility.Collapsed;
+        }
+    }
+
+    private async void PushAwardMap()
+    {
+        if (!_awardMapReady) return;
+        try { await AwardMap.ExecuteScriptAsync($"awardUpdate({_vm.BuildAwardMapJson()})"); }
+        catch (Exception ex) { Log.Warn($"Mappa diplomi: {ex.Message}"); }
     }
 
     private async void PushCounties()

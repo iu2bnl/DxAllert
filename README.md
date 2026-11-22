@@ -1,4 +1,4 @@
-# DXAllert
+﻿# DXAllert
 
 Programma per radioamatori che mostra e segnala le DXpedition attive, quelle on air in tempo
 reale (spot dal DX cluster) e quelle pianificate.
@@ -31,6 +31,9 @@ reale (spot dal DX cluster) e quelle pianificate.
 - **Contee USA**: mappa delle contee degli Stati Uniti lavorate secondo il log ADIF importato, per
   il diploma USA-CA di MARAC (marac.org): totale, prossima classe (USA 500, 1000, …, 3077),
   avanzamento per stato, contee del log non riconosciute e città indipendenti.
+- **Diplomi**: avanzamento, dal log ADIF, dei diplomi dell'elenco di VA3RJ che si possono calcolare
+  da un log (paesi DXCC e WAE, continenti, stazioni e prefissi di un paese, isole IOTA), con classi,
+  bande, voci collegate e mancanti e mappa dei paesi.
 - **QRZ.com**: scheda del nominativo selezionato nel riquadro a destra, ridimensionabile.
 - **Log ADIF**: importando il proprio log, la colonna "Già collegata" indica nominativi ed
   entità DXCC già fatti, con banda e modo.
@@ -205,6 +208,24 @@ fanno parte del diploma.
   "County" o "Parish" ("Saint" vale "St."); alcuni vecchi nomi sono riconosciuti (Dade →
   Miami-Dade, Shannon → Oglala Lakota). Le voci che non corrispondono a nessuna contea sono
   elencate nella scheda.
+
+## Diplomi
+
+La scheda calcola dal log importato l'avanzamento di 38 diplomi dell'elenco
+[qsl.net/va3rj/awards_dx.html](https://www.qsl.net/va3rj/awards_dx.html), con le regole lette sulle
+pagine degli enti (novembre 2026): DXCC, 5 e 9 bande ed Elite della WIA, 101 Países, DX 100/200/300,
+CT DX 100, EADX100, Toplist ARI, WNH/WSH, Formula I, WAE, WA EU, The Europe Award, Balkan, C.D.M.,
+Euro Countries, WANC, Zone 40, Alpine Country, WAC, 5BWAC, CCC, ADXA, W.A.A.C., WACS, TPA, IOTA,
+W-100-I, WAOE 100, W 100 OM, LA 100, YV 100/200/300, ZP 100-500, EU-PX-A, Prefixes-SP, CT-WPX.
+
+- Entità, continenti e paesi WAE (Sicilia, Shetland, Bear Island, 4U1V, Turchia europea) vengono
+  dal nominativo con il cty.dat; date (`QSO_DATE`), conferme (`QSL_RCVD`, `LOTW_QSL_RCVD`,
+  `EQSL_QSL_RCVD`) e `IOTA` dal file ADIF. I log importati prima della versione 1.1.2 vanno
+  importati di nuovo per avere date, conferme e IOTA.
+- I filtri limitano il conteggio a un modo (CW, fonia, digitali), a una banda o ai QSO confermati.
+- Gli altri diplomi dell'elenco chiedono riferimenti che un log non contiene (castelli, parchi,
+  comuni, province, fari…) oppure valevano solo in un periodo già passato.
+- Le regole nella scheda sono riassunte: prima di fare domanda va letto il regolamento dell'ente.
 
 ## Cartella dati separata
 

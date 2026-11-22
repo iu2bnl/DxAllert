@@ -24,7 +24,19 @@ public sealed class CtyResolver
     public IReadOnlyList<DxccEntity> Entities => _entities;
     public string Version { get; private set; } = "";
 
+    /// <summary>Lo stesso file con anche le entità solo WAE (Sicilia, Shetland, Bear Island, 4U1V, Turchia europea):
+    /// servono ai diplomi europei del DARC.</summary>
+    public CtyResolver Wae { get; private set; } = null!;
+
     public static CtyResolver Parse(string ctyDat)
+    {
+        var r = Parse(ctyDat, includeWae: false);
+        r.Wae = Parse(ctyDat, includeWae: true);
+        r.Wae.Wae = r.Wae;
+        return r;
+    }
+
+    private static CtyResolver Parse(string ctyDat, bool includeWae)
     {
         var r = new CtyResolver();
         // Ogni entità: riga di testata con 8 campi separati da ':' poi elenco alias chiuso da ';'.
@@ -36,7 +48,11 @@ public sealed class CtyResolver
             if (f.Length < 9) continue;
             var primary = f[7].Trim();
             // Con '*' sono entità solo WAEDC (es. IT9, Shetland): non sono DXCC, si ricade sul paese madre.
-            if (primary.StartsWith('*')) continue;
+            if (primary.StartsWith('*'))
+            {
+                if (!includeWae) continue;
+                primary = primary[1..];
+            }
             if (!int.TryParse(f[1].Trim(), out var cq) || !int.TryParse(f[2].Trim(), out var itu)) continue;
             var lat = double.Parse(f[4].Trim(), CultureInfo.InvariantCulture);
             // In cty.dat la longitudine è positiva verso OVEST.
