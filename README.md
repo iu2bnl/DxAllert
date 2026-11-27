@@ -9,7 +9,8 @@ reale (spot dal DX cluster) e quelle pianificate.
   ultimi 15 minuti. Per ogni spot: bandiera, nominativo DX in rosso e spotter in verde, paese e
   numero DXCC di entrambi in colonne separate, commento, "Già collegata" e, per le DXpedition,
   giorni rimanenti, QSL, distanza, azimut e sito. Di base mostra solo gli spot delle DXpedition
-  attive; "Mostra tutti gli spot" li mostra tutti. Filtri per banda, modo e frequenza; l'imbuto
+  attive; "Mostra tutti gli spot" li mostra tutti. Ogni nominativo compare una volta per banda e modo,
+  con l'ultimo spot ricevuto. Filtri per banda, modo e frequenza; l'imbuto
   accanto alla banda filtra su quella banda.
 - **Attive ora**: le DXpedition in corso, con l'etichetta ON AIR per quelle spottate negli
   ultimi 15 minuti, paese e DXCC, ultimo spot, QSL, distanza e azimut dal proprio locator.
@@ -28,11 +29,11 @@ reale (spot dal DX cluster) e quelle pianificate.
   la spunta "Vista calendario" per passare dal mese a una tabella dei prossimi 12 mesi. Filtri per
   area e per nome, modo o banda; per ogni contest orari UTC, durata, modi, bande e link al
   regolamento.
-- **Contee USA**: mappa delle contee degli Stati Uniti lavorate secondo il log ADIF importato, per
-  il diploma USA-CA di MARAC (marac.org): totale, prossima classe (USA 500, 1000, …, 3077),
-  avanzamento per stato, contee del log non riconosciute e città indipendenti.
-- **Giappone** e **Cina**: mappe delle prefetture giapponesi (diploma WAJA della JARL) e delle province
-  cinesi (31 province e regioni più Taiwan, Hong Kong e Macao) lavorate secondo il log ADIF.
+- **Diplomi**: tre mappe calcolate dal log ADIF importato, in sottoschede.
+  - **Contee USA**: contee degli Stati Uniti lavorate per il diploma USA-CA di MARAC (marac.org): totale,
+    prossima classe (USA 500, 1000, …, 3077), avanzamento per stato, contee non riconosciute e città indipendenti.
+  - **Giappone**: prefetture giapponesi lavorate (diploma WAJA della JARL).
+  - **Cina**: province cinesi lavorate (31 province e regioni più Taiwan, Hong Kong e Macao).
 - **QRZ.com**: scheda del nominativo selezionato nel riquadro a destra, ridimensionabile.
 - **Log ADIF**: importando il proprio log, la colonna "Già collegata" indica nominativi ed
   entità DXCC già fatti, con banda e modo.

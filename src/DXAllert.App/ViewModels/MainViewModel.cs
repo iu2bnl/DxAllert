@@ -913,8 +913,16 @@ public partial class MainViewModel : ObservableObject
                                     Math.Abs((s.Spot.TimeUtc - spot.TimeUtc).TotalMinutes) < 3))
             return;
 
-        Spots.Insert(0, new SpotRow(spot, row, row is null ? _cty?.Resolve(spot.DxCall) : null, _worked, _cty?.Resolve(spot.Spotter),
-                                    Geo.LocatorToLatLon(_settings.Locator)));
+        var added = new SpotRow(spot, row, row is null ? _cty?.Resolve(spot.DxCall) : null, _worked, _cty?.Resolve(spot.Spotter),
+                                Geo.LocatorToLatLon(_settings.Locator));
+        // Un nominativo compare una volta sola per banda e modo: lo spot nuovo sostituisce quello vecchio.
+        var key = CallsignUtil.Normalize(spot.DxCall);
+        var same = Spots.Where(s => s.Band == added.Band && s.Mode == added.Mode && CallsignUtil.Normalize(s.Spot.DxCall) == key).ToList();
+        if (same.Any(s => s.Spot.TimeUtc > spot.TimeUtc)) return;   // in tabella c'è già uno spot più recente
+        var wasSelected = same.Any(s => ReferenceEquals(SelectedSpot, s));
+        foreach (var s in same) Spots.Remove(s);
+        Spots.Insert(0, added);
+        if (wasSelected) SelectedSpot = added;
         while (Spots.Count > MaxSpotRows) Spots.RemoveAt(Spots.Count - 1);
         if (row is null) return;
 

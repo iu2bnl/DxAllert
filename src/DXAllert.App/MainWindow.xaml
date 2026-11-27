@@ -1015,29 +1015,34 @@
                 </DockPanel>
             </TabItem>
 
-            <!-- CONTEE USA (diploma MARAC USA-CA) dal log ADIF -->
-            <TabItem Header="Contee USA">
-                <Grid>
-                    <TextBlock x:Name="CountyMessage" Text="Caricamento della mappa…" HorizontalAlignment="Center" VerticalAlignment="Center"
-                               Foreground="{DynamicResource Muted}" TextWrapping="Wrap" MaxWidth="520" TextAlignment="Center" />
-                    <wv2:WebView2 x:Name="CountyMap" Loaded="CountyMap_Loaded" />
-                </Grid>
-            </TabItem>
+            <!-- DIPLOMI: mappe delle contee USA, delle prefetture giapponesi e delle province cinesi dal log ADIF -->
+            <TabItem Header="Diplomi">
+                <TabControl Foreground="{DynamicResource Fg}" Margin="0,4,0,0">
+                    <!-- CONTEE USA (diploma MARAC USA-CA) dal log ADIF -->
+                    <TabItem Header="Contee USA">
+                        <Grid>
+                            <TextBlock x:Name="CountyMessage" Text="Caricamento della mappa…" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource Muted}" TextWrapping="Wrap" MaxWidth="520" TextAlignment="Center" />
+                            <wv2:WebView2 x:Name="CountyMap" Loaded="CountyMap_Loaded" />
+                        </Grid>
+                    </TabItem>
 
-            <!-- PREFETTURE GIAPPONESI (WAJA) e PROVINCE CINESI dal log ADIF -->
-            <TabItem Header="Giappone">
-                <Grid>
-                    <TextBlock x:Name="JapanMessage" Text="Caricamento della mappa…" HorizontalAlignment="Center" VerticalAlignment="Center"
-                               Foreground="{DynamicResource Muted}" TextWrapping="Wrap" MaxWidth="520" TextAlignment="Center" />
-                    <wv2:WebView2 x:Name="JapanMap" Loaded="JapanMap_Loaded" />
-                </Grid>
-            </TabItem>
-            <TabItem Header="Cina">
-                <Grid>
-                    <TextBlock x:Name="ChinaMessage" Text="Caricamento della mappa…" HorizontalAlignment="Center" VerticalAlignment="Center"
-                               Foreground="{DynamicResource Muted}" TextWrapping="Wrap" MaxWidth="520" TextAlignment="Center" />
-                    <wv2:WebView2 x:Name="ChinaMap" Loaded="ChinaMap_Loaded" />
-                </Grid>
+                    <!-- PREFETTURE GIAPPONESI (WAJA) e PROVINCE CINESI dal log ADIF -->
+                    <TabItem Header="Giappone">
+                        <Grid>
+                            <TextBlock x:Name="JapanMessage" Text="Caricamento della mappa…" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource Muted}" TextWrapping="Wrap" MaxWidth="520" TextAlignment="Center" />
+                            <wv2:WebView2 x:Name="JapanMap" Loaded="JapanMap_Loaded" />
+                        </Grid>
+                    </TabItem>
+                    <TabItem Header="Cina">
+                        <Grid>
+                            <TextBlock x:Name="ChinaMessage" Text="Caricamento della mappa…" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Foreground="{DynamicResource Muted}" TextWrapping="Wrap" MaxWidth="520" TextAlignment="Center" />
+                            <wv2:WebView2 x:Name="ChinaMap" Loaded="ChinaMap_Loaded" />
+                        </Grid>
+                    </TabItem>
+                </TabControl>
             </TabItem>
 
             <!-- MAPPA -->
